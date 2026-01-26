@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#1a1a2e" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Domino Score — Scan &amp; Add</title>
+  <title>Domino Score</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
@@ -15,77 +15,33 @@
 <body>
   <header class="header">
     <h1>Domino Score</h1>
-    <p class="subtitle">Scan remaining pieces or add manually</p>
+    <p class="subtitle">Tap dominoes to add them up</p>
   </header>
 
   <main class="main">
-    <!-- Camera / Preview -->
-    <section class="camera-section" id="cameraSection">
-      <div class="video-wrap">
-        <video id="video" playsinline autoplay muted></video>
-        <canvas id="captureCanvas" class="hidden"></canvas>
-      </div>
-      <p id="cameraStatus" class="status">Allow camera access to scan</p>
-      <div class="camera-actions">
-        <button type="button" id="btnCapture" class="btn btn-primary" disabled>Scan table</button>
-        <label class="btn btn-secondary">
-          Choose photo
-          <input type="file" id="fileInput" accept="image/*" capture="environment" class="sr-only" />
-        </label>
-      </div>
-    </section>
-
-    <!-- Scan result / Manual -->
     <section class="results-section">
       <div class="total-wrap">
         <span class="total-label">Total points</span>
         <span id="totalPoints" class="total-value">0</span>
       </div>
 
-      <div class="detected-wrap" id="detectedWrap">
-        <h2>Detected pieces</h2>
-        <ul id="detectedList" class="piece-list"></ul>
-        <p id="detectedEmpty" class="muted">None yet. Scan or add manually.</p>
+      <div class="selected-wrap">
+        <h2>Selected pieces</h2>
+        <ul id="selectedList" class="piece-list"></ul>
+        <p id="selectedEmpty" class="muted">Tap dominoes below to add them.</p>
       </div>
+    </section>
 
-      <div class="manual-wrap">
-        <h2>Add manually</h2>
-        <div class="manual-row">
-          <select id="selectLeft" aria-label="Left half">
-            <option value="0">0</option>
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-          </select>
-          <span class="sep">–</span>
-          <select id="selectRight" aria-label="Right half">
-            <option value="0">0</option>
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-          </select>
-          <button type="button" id="btnAdd" class="btn btn-add">Add</button>
-        </div>
-      </div>
+    <section class="domino-grid-section">
+      <h2>Tap to add</h2>
+      <div id="dominoGrid" class="domino-grid"></div>
+    </section>
 
-      <button type="button" id="btnReset" class="btn btn-ghost">Reset</button>
+    <section class="actions-section">
+      <button type="button" id="btnReset" class="btn btn-ghost">Reset all</button>
     </section>
   </main>
 
-  <footer class="footer">
-    <p id="opencvStatus" class="muted">Loading OpenCV…</p>
-  </footer>
-
-  <script>
-    var Module = { onRuntimeInitialized: function() { window.dispatchEvent(new Event('opencvReady')); } };
-  </script>
-  <script async src="https://docs.opencv.org/4.x/opencv.js" type="text/javascript"></script>
-  <script src="app.js" type="module"></script>
+  <script src="app.js"></script>
 </body>
 </html>
