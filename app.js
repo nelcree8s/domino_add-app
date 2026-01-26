@@ -174,8 +174,8 @@ function detectPieces(canvas) {
   const blurred = new cv.Mat();
   cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0);
   const imgArea = blurred.rows * blurred.cols;
-  const minArea = imgArea * 0.01;  // Lower threshold: 1%
-  const maxArea = imgArea * 0.30;  // ignore huge regions
+  const minArea = imgArea * 0.015;  // 1.5% - more conservative
+  const maxArea = imgArea * 0.25;   // ignore huge regions
   const candidates = [];
   
   // Try multiple approaches: threshold on light regions first
@@ -187,17 +187,23 @@ function detectPieces(canvas) {
   th.delete();
   hier.delete();
   
-  // Process all contours - skip center line check initially, make it more lenient
+  // Process all contours with strict validation
   for (let i = 0; i < contours.size(); i++) {
     const c = contours.get(i);
     const r = cv.boundingRect(c);
     const a = r.width * r.height;
     if (a < minArea || a > maxArea) continue;
+    
+    // Stricter aspect ratio: closer to true 2:1 domino shape
     const ar = r.width / r.height;
-    // More lenient aspect ratio: 1.4–2.6 for horizontal, 0.38–0.71 for vertical
-    const isH = ar >= 1.4 && ar <= 2.6;
-    const isV = ar >= 0.38 && ar <= 0.71;
+    const isH = ar >= 1.7 && ar <= 2.3;  // Tighter: 1.7-2.3
+    const isV = ar >= 0.43 && ar <= 0.59; // Tighter: 0.43-0.59
     if (!isH && !isV) continue;
+    
+    // Validate: contour should fill most of its bounding box (dominoes are solid rectangles)
+    const contourArea = cv.contourArea(c);
+    const fillRatio = contourArea / a;
+    if (fillRatio < 0.6) continue; // Reject sparse shapes (table texture, shadows)
     
     let v1, v2;
     try {
@@ -214,9 +220,17 @@ function detectPieces(canvas) {
         v1 = countDotsInHalf(top);
         v2 = countDotsInHalf(bot);
       }
-      // Accept if valid counts (allow 0-0 blanks)
+      // Require at least one half to have pips (reject pure blank regions unless very clear)
+      // Also reject if both halves have 0 (0-0 is valid but rare, and often false positive)
       if (v1 >= 0 && v1 <= 6 && v2 >= 0 && v2 <= 6) {
-        candidates.push({ rect: r, area: a, left: v1, right: v2 });
+        if (v1 === 0 && v2 === 0) {
+          // Only accept 0-0 if the region is very clear (high fill ratio)
+          if (fillRatio > 0.8) {
+            candidates.push({ rect: r, area: a, left: v1, right: v2 });
+          }
+        } else {
+          candidates.push({ rect: r, area: a, left: v1, right: v2 });
+        }
       }
     } catch (e) {
       console.warn('Error processing contour:', e);
@@ -224,7 +238,7 @@ function detectPieces(canvas) {
     }
   }
   
-  // If no candidates from light regions, try dark regions (inverted)
+  // If no candidates from light regions, try dark regions (inverted) - but with same strict validation
   if (candidates.length === 0) {
     const th2 = new cv.Mat();
     cv.threshold(blurred, th2, 0, 255, cv.THRESH_BINARY_INV | cv.THRESH_OTSU);
@@ -239,9 +253,13 @@ function detectPieces(canvas) {
       const a = r.width * r.height;
       if (a < minArea || a > maxArea) continue;
       const ar = r.width / r.height;
-      const isH = ar >= 1.4 && ar <= 2.6;
-      const isV = ar >= 0.38 && ar <= 0.71;
+      const isH = ar >= 1.7 && ar <= 2.3;
+      const isV = ar >= 0.43 && ar <= 0.59;
       if (!isH && !isV) continue;
+      // Same fill ratio check
+      const contourArea = cv.contourArea(c);
+      const fillRatio = contourArea / a;
+      if (fillRatio < 0.6) continue;
       try {
         let v1, v2;
         if (isH) {
@@ -258,7 +276,13 @@ function detectPieces(canvas) {
           v2 = countDotsInHalf(bot);
         }
         if (v1 >= 0 && v1 <= 6 && v2 >= 0 && v2 <= 6) {
-          candidates.push({ rect: r, area: a, left: v1, right: v2 });
+          if (v1 === 0 && v2 === 0) {
+            if (fillRatio > 0.8) {
+              candidates.push({ rect: r, area: a, left: v1, right: v2 });
+            }
+          } else {
+            candidates.push({ rect: r, area: a, left: v1, right: v2 });
+          }
         }
       } catch (e) {
         console.warn('Error processing inverted contour:', e);
@@ -281,11 +305,16 @@ function detectPieces(canvas) {
     for (const k of kept) {
       const ix = Math.max(0, Math.min(r.x + r.width, k.x + k.width) - Math.max(r.x, k.x));
       const iy = Math.max(0, Math.min(r.y + r.height, k.y + k.height) - Math.max(r.y, k.y));
-      if (ix * iy / cur.area > 0.5) { overlapped = true; break; }
+      const intersection = ix * iy;
+      const union = cur.area + k.width * k.height - intersection;
+      const iou = intersection / union; // Intersection over Union
+      if (iou > 0.3) { overlapped = true; break; } // Stricter: 30% IoU threshold
     }
     if (!overlapped) kept.push(cur.rect);
   }
-  return candidates.filter((c) => kept.includes(c.rect)).map((c) => ({ left: c.left, right: c.right }));
+  const result = candidates.filter((c) => kept.includes(c.rect)).map((c) => ({ left: c.left, right: c.right }));
+  // Limit to reasonable number (max 10 pieces in a scan)
+  return result.slice(0, 10);
 }
 
 function processImage(canvas) {
