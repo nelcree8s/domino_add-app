@@ -64,6 +64,125 @@ body {
   margin: 0 auto;
 }
 
+/* Mode Toggle */
+.mode-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  background: var(--surface);
+  padding: 0.25rem;
+  border-radius: var(--radius);
+}
+.mode-btn {
+  flex: 1;
+  padding: 0.5rem;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.mode-btn.active {
+  background: var(--accent);
+  color: #0f0f17;
+}
+
+/* Camera Section */
+.camera-section {
+  margin-bottom: 1.5rem;
+}
+.video-wrap {
+  position: relative;
+  aspect-ratio: 4/3;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: #000;
+  margin-bottom: 0.75rem;
+}
+#video, #captureCanvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.status {
+  margin: 0.5rem 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-align: center;
+}
+.camera-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+.btn-primary {
+  background: var(--accent);
+  color: #0f0f17;
+}
+.btn-primary:not(:disabled):hover { background: var(--accent-hover); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-secondary {
+  background: var(--surface2);
+  color: var(--text);
+}
+.btn-secondary:hover { background: #2f2f45; }
+
+.detected-preview {
+  background: var(--surface);
+  padding: 1rem;
+  border-radius: var(--radius);
+  margin-top: 1rem;
+}
+.detected-preview h3 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem;
+  color: var(--muted);
+}
+.detected-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.detected-item {
+  margin: 0;
+}
+.detected-domino {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: #fff;
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.4rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 60px;
+}
+.detected-domino:hover {
+  border-color: var(--accent);
+  transform: scale(1.05);
+}
+.detected-domino:active {
+  transform: scale(0.95);
+}
+.detected-domino.added {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: var(--success);
+}
+.detected-domino:disabled {
+  cursor: not-allowed;
+}
+
 /* Results */
 .results-section {
   margin-bottom: 1.5rem;
