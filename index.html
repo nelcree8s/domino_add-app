@@ -13,13 +13,21 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header class="header">
-    <h1>Domino Score</h1>
-    <p class="subtitle">Tap dominoes or scan with camera</p>
-  </header>
-
   <main class="main">
-    <!-- Mode Toggle -->
+    <!-- Score Display -->
+    <div class="score-display">
+      <button type="button" id="btnMenu" class="menu-btn" aria-label="Menu">☰</button>
+      <div class="score-value-wrap">
+        <span id="totalPoints" class="score-value">0</span>
+      </div>
+    </div>
+
+    <!-- Instruction Bar -->
+    <div class="instruction-bar">
+      <span id="instructionText">Tap a domino to add to your score</span>
+    </div>
+
+    <!-- Mode Toggle (minimal) -->
     <div class="mode-toggle">
       <button type="button" id="btnModeManual" class="mode-btn active">Manual</button>
       <button type="button" id="btnModeCamera" class="mode-btn">Camera</button>
@@ -47,28 +55,33 @@
 
     <!-- Manual Section (default) -->
     <section class="manual-section" id="manualSection">
-      <section class="results-section">
-        <div class="total-wrap">
-          <span class="total-label">Total points</span>
-          <span id="totalPoints" class="total-value">0</span>
-        </div>
-
-        <div class="selected-wrap">
-          <h2>Selected pieces</h2>
-          <ul id="selectedList" class="piece-list"></ul>
-          <p id="selectedEmpty" class="muted">Tap dominoes below to add them.</p>
-        </div>
-      </section>
-
-      <section class="domino-grid-section">
-        <h2>Tap to add</h2>
-        <div id="dominoGrid" class="domino-grid"></div>
-      </section>
+      <div id="dominoGrid" class="domino-grid"></div>
     </section>
 
-    <section class="actions-section">
-      <button type="button" id="btnReset" class="btn btn-ghost">Reset all</button>
-    </section>
+    <!-- Bottom Nav -->
+    <nav class="bottom-nav">
+      <button type="button" id="btnCameraNav" class="nav-btn" aria-label="Camera">
+        <span class="nav-icon">📷</span>
+      </button>
+      <button type="button" id="btnListNav" class="nav-btn" aria-label="List">
+        <span class="nav-icon">📋</span>
+      </button>
+      <button type="button" id="btnClearNav" class="nav-btn" aria-label="Clear">
+        <span class="nav-icon">🗑️</span>
+      </button>
+      <button type="button" id="btnSettingsNav" class="nav-btn" aria-label="Settings">
+        <span class="nav-icon">⚙️</span>
+      </button>
+    </nav>
+
+    <!-- List View (hidden) -->
+    <div id="listView" class="list-view hidden">
+      <div class="list-header">
+        <h2>Added Pieces</h2>
+        <button type="button" id="btnCloseList" class="close-btn">×</button>
+      </div>
+      <ul id="selectedList" class="piece-list-full"></ul>
+    </div>
   </main>
 
   <script>

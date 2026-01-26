@@ -4,9 +4,15 @@
 
 const totalEl = document.getElementById('totalPoints');
 const selectedList = document.getElementById('selectedList');
-const selectedEmpty = document.getElementById('selectedEmpty');
 const dominoGrid = document.getElementById('dominoGrid');
-const btnReset = document.getElementById('btnReset');
+const instructionText = document.getElementById('instructionText');
+const btnMenu = document.getElementById('btnMenu');
+const btnCameraNav = document.getElementById('btnCameraNav');
+const btnListNav = document.getElementById('btnListNav');
+const btnClearNav = document.getElementById('btnClearNav');
+const btnSettingsNav = document.getElementById('btnSettingsNav');
+const listView = document.getElementById('listView');
+const btnCloseList = document.getElementById('btnCloseList');
 
 // Camera elements
 const btnModeManual = document.getElementById('btnModeManual');
@@ -114,6 +120,20 @@ function total() {
  */
 function render() {
   totalEl.textContent = String(total());
+  updateInstruction();
+  renderList();
+}
+
+function updateInstruction() {
+  const count = pieces.length;
+  if (count === 0) {
+    instructionText.textContent = 'Tap a domino to add to your score';
+  } else {
+    instructionText.textContent = `${count} piece${count === 1 ? '' : 's'} added`;
+  }
+}
+
+function renderList() {
   selectedList.innerHTML = '';
   pieces.forEach((p) => {
     const li = document.createElement('li');
@@ -137,13 +157,31 @@ function render() {
     li.appendChild(removeBtn);
     selectedList.appendChild(li);
   });
-  selectedEmpty.classList.toggle('hidden', pieces.length > 0);
 }
 
-btnReset.addEventListener('click', () => {
-  pieces = [];
-  nextId = 0;
-  render();
+// Bottom nav handlers
+btnCameraNav.addEventListener('click', () => {
+  btnModeCamera.click();
+});
+btnListNav.addEventListener('click', () => {
+  listView.classList.remove('hidden');
+});
+btnCloseList.addEventListener('click', () => {
+  listView.classList.add('hidden');
+});
+btnClearNav.addEventListener('click', () => {
+  if (pieces.length > 0 && confirm('Clear all pieces?')) {
+    pieces = [];
+    nextId = 0;
+    render();
+  }
+});
+btnSettingsNav.addEventListener('click', () => {
+  // Placeholder for settings
+  alert('Settings coming soon');
+});
+btnMenu.addEventListener('click', () => {
+  btnListNav.click();
 });
 
 // ---- Mode Toggle ----
