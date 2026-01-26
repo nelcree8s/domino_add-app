@@ -97,47 +97,33 @@ if (typeof cv !== 'undefined' && typeof cv.Mat !== 'undefined') {
  */
 function countDotsInHalf(halfGray) {
   const area = halfGray.rows * halfGray.cols;
-  if (area < 150) return 0; // too small, skip
-  // Use adaptive threshold for better handling of lighting variations
+  if (area < 100) return 0; // too small, skip
+  // Use OTSU threshold - simpler and more reliable
   const thresh = new cv.Mat();
-  cv.adaptiveThreshold(halfGray, thresh, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY_INV, 11, 2);
-  // Morphological opening to remove noise
-  const kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(3, 3));
+  cv.threshold(halfGray, thresh, 0, 255, cv.THRESH_BINARY_INV | cv.THRESH_OTSU);
+  // Light morphological opening to remove tiny noise
+  const kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(2, 2));
   const cleaned = new cv.Mat();
   cv.morphologyEx(thresh, cleaned, cv.MORPH_OPEN, kernel);
   kernel.delete();
   const contours = new cv.MatVector();
   const hier = new cv.Mat();
   cv.findContours(cleaned, contours, hier, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
-  // Pips are roughly circular and 3–20% of the half area
-  const minArea = Math.max(8, area * 0.03);
-  const maxArea = area * 0.25;
-  const validPips = [];
+  // More lenient: pips are 2–30% of the half area
+  const minArea = Math.max(4, area * 0.02);
+  const maxArea = area * 0.30;
+  let count = 0;
   for (let i = 0; i < contours.size(); i++) {
     const c = contours.get(i);
     const a = cv.contourArea(c);
-    if (a < minArea || a > maxArea) continue;
-    // Check circularity: 4π*area / perimeter² should be close to 1 for circles
-    const perim = cv.arcLength(c, true);
-    if (perim < 10) continue; // too small
-    const circularity = (4 * Math.PI * a) / (perim * perim);
-    // Accept if reasonably circular (0.5+) or if it's a large blob (might be multiple pips merged)
-    if (circularity >= 0.5 || (a > area * 0.15 && circularity >= 0.3)) {
-      validPips.push(a);
+    if (a >= minArea && a <= maxArea) {
+      count++;
     }
   }
   thresh.delete();
   cleaned.delete();
   contours.delete();
   hier.delete();
-  // Count: if we have large blobs, they might be multiple pips merged (e.g., 6-pip pattern)
-  let count = validPips.length;
-  // If we have fewer than expected but large blobs, might be merged pips
-  const largeBlobs = validPips.filter(a => a > area * 0.12).length;
-  if (count < 3 && largeBlobs > 0) {
-    // Estimate: large blob might be 2-3 pips
-    count = Math.min(6, count + largeBlobs);
-  }
   return Math.min(6, Math.max(0, count));
 }
 
@@ -187,68 +173,34 @@ function detectPieces(canvas) {
   src.delete();
   const blurred = new cv.Mat();
   cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0);
-  // Use Canny edge detection to find actual boundaries
-  const edges = new cv.Mat();
-  cv.Canny(blurred, edges, 50, 150);
-  // Dilate edges slightly to close gaps
-  const kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(3, 3));
-  const dilated = new cv.Mat();
-  cv.dilate(edges, dilated, kernel);
-  kernel.delete();
-  edges.delete();
   const imgArea = blurred.rows * blurred.cols;
-  const minArea = imgArea * 0.02;  // ~2%; more conservative
-  const maxArea = imgArea * 0.25;  // ignore huge regions
+  const minArea = imgArea * 0.01;  // Lower threshold: 1%
+  const maxArea = imgArea * 0.30;  // ignore huge regions
   const candidates = [];
+  
+  // Try multiple approaches: threshold on light regions first
+  const th = new cv.Mat();
+  cv.threshold(blurred, th, 0, 255, cv.THRESH_BINARY | cv.THRESH_OTSU);
   const contours = new cv.MatVector();
   const hier = new cv.Mat();
-  cv.findContours(dilated, contours, hier, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
-  dilated.delete();
+  cv.findContours(th, contours, hier, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+  th.delete();
   hier.delete();
-  // First pass: strict validation with center line
+  
+  // Process all contours - skip center line check initially, make it more lenient
   for (let i = 0; i < contours.size(); i++) {
     const c = contours.get(i);
     const r = cv.boundingRect(c);
     const a = r.width * r.height;
     if (a < minArea || a > maxArea) continue;
     const ar = r.width / r.height;
-    const isH = ar >= 1.6 && ar <= 2.4;  // Tighter: closer to true 2:1
-    const isV = ar >= 0.42 && ar <= 0.625;
+    // More lenient aspect ratio: 1.4–2.6 for horizontal, 0.38–0.71 for vertical
+    const isH = ar >= 1.4 && ar <= 2.6;
+    const isV = ar >= 0.38 && ar <= 0.71;
     if (!isH && !isV) continue;
-    // Extract ROI and validate it has a center line
-    const roi = blurred.roi(new cv.Rect(r.x, r.y, r.width, r.height));
-    if (!hasCenterLine(roi, isH)) continue;  // Skip if no center line
+    
     let v1, v2;
-    if (isH) {
-      const mid = Math.floor(r.x + r.width / 2);
-      const left = blurred.roi(new cv.Rect(r.x, r.y, mid - r.x, r.height));
-      const right = blurred.roi(new cv.Rect(mid, r.y, r.x + r.width - mid, r.height));
-      v1 = countDotsInHalf(left);
-      v2 = countDotsInHalf(right);
-    } else {
-      const mid = Math.floor(r.y + r.height / 2);
-      const top = blurred.roi(new cv.Rect(r.x, r.y, r.width, mid - r.y));
-      const bot = blurred.roi(new cv.Rect(r.x, mid, r.width, r.y + r.height - mid));
-      v1 = countDotsInHalf(top);
-      v2 = countDotsInHalf(bot);
-    }
-    // Only accept if both halves have valid counts
-    if (v1 >= 0 && v1 <= 6 && v2 >= 0 && v2 <= 6) {
-      candidates.push({ rect: r, area: a, left: v1, right: v2 });
-    }
-  }
-  // Fallback: if no candidates with center line, try without (might be faint center line)
-  if (candidates.length === 0) {
-    for (let i = 0; i < contours.size(); i++) {
-      const c = contours.get(i);
-      const r = cv.boundingRect(c);
-      const a = r.width * r.height;
-      if (a < minArea || a > maxArea) continue;
-      const ar = r.width / r.height;
-      const isH = ar >= 1.6 && ar <= 2.4;
-      const isV = ar >= 0.42 && ar <= 0.625;
-      if (!isH && !isV) continue;
-      let v1, v2;
+    try {
       if (isH) {
         const mid = Math.floor(r.x + r.width / 2);
         const left = blurred.roi(new cv.Rect(r.x, r.y, mid - r.x, r.height));
@@ -262,15 +214,64 @@ function detectPieces(canvas) {
         v1 = countDotsInHalf(top);
         v2 = countDotsInHalf(bot);
       }
-      // Require at least one half to have pips (reject blank regions)
-      if (v1 >= 0 && v1 <= 6 && v2 >= 0 && v2 <= 6 && (v1 > 0 || v2 > 0)) {
+      // Accept if valid counts (allow 0-0 blanks)
+      if (v1 >= 0 && v1 <= 6 && v2 >= 0 && v2 <= 6) {
         candidates.push({ rect: r, area: a, left: v1, right: v2 });
       }
+    } catch (e) {
+      console.warn('Error processing contour:', e);
+      continue;
     }
   }
+  
+  // If no candidates from light regions, try dark regions (inverted)
+  if (candidates.length === 0) {
+    const th2 = new cv.Mat();
+    cv.threshold(blurred, th2, 0, 255, cv.THRESH_BINARY_INV | cv.THRESH_OTSU);
+    const cont2 = new cv.MatVector();
+    const h2 = new cv.Mat();
+    cv.findContours(th2, cont2, h2, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+    th2.delete();
+    h2.delete();
+    for (let i = 0; i < cont2.size(); i++) {
+      const c = cont2.get(i);
+      const r = cv.boundingRect(c);
+      const a = r.width * r.height;
+      if (a < minArea || a > maxArea) continue;
+      const ar = r.width / r.height;
+      const isH = ar >= 1.4 && ar <= 2.6;
+      const isV = ar >= 0.38 && ar <= 0.71;
+      if (!isH && !isV) continue;
+      try {
+        let v1, v2;
+        if (isH) {
+          const mid = Math.floor(r.x + r.width / 2);
+          const left = blurred.roi(new cv.Rect(r.x, r.y, mid - r.x, r.height));
+          const right = blurred.roi(new cv.Rect(mid, r.y, r.x + r.width - mid, r.height));
+          v1 = countDotsInHalf(left);
+          v2 = countDotsInHalf(right);
+        } else {
+          const mid = Math.floor(r.y + r.height / 2);
+          const top = blurred.roi(new cv.Rect(r.x, r.y, r.width, mid - r.y));
+          const bot = blurred.roi(new cv.Rect(r.x, mid, r.width, r.y + r.height - mid));
+          v1 = countDotsInHalf(top);
+          v2 = countDotsInHalf(bot);
+        }
+        if (v1 >= 0 && v1 <= 6 && v2 >= 0 && v2 <= 6) {
+          candidates.push({ rect: r, area: a, left: v1, right: v2 });
+        }
+      } catch (e) {
+        console.warn('Error processing inverted contour:', e);
+        continue;
+      }
+    }
+    cont2.delete();
+  }
+  
   contours.delete();
   blurred.delete();
   gray.delete();
+  
   // NMS: drop candidates that overlap too much with a larger one
   candidates.sort((a, b) => b.area - a.area);
   const kept = [];
@@ -280,7 +281,7 @@ function detectPieces(canvas) {
     for (const k of kept) {
       const ix = Math.max(0, Math.min(r.x + r.width, k.x + k.width) - Math.max(r.x, k.x));
       const iy = Math.max(0, Math.min(r.y + r.height, k.y + k.height) - Math.max(r.y, k.y));
-      if (ix * iy / cur.area > 0.4) { overlapped = true; break; }  // 40% overlap threshold
+      if (ix * iy / cur.area > 0.5) { overlapped = true; break; }
     }
     if (!overlapped) kept.push(cur.rect);
   }
@@ -288,11 +289,24 @@ function detectPieces(canvas) {
 }
 
 function processImage(canvas) {
-  const detected = opencvReady ? detectPieces(canvas) : [];
-  if (detected.length > 0) {
-    pieces.push(...detected);
+  if (!opencvReady) {
+    cameraStatus.textContent = 'OpenCV.js not ready yet.';
+    return;
   }
-  render();
+  try {
+    const detected = detectPieces(canvas);
+    console.log('Detected pieces:', detected);
+    if (detected.length > 0) {
+      pieces.push(...detected);
+      cameraStatus.textContent = `Found ${detected.length} piece(s).`;
+    } else {
+      cameraStatus.textContent = 'No pieces detected. Try better lighting or add manually.';
+    }
+    render();
+  } catch (e) {
+    console.error('Detection error:', e);
+    cameraStatus.textContent = 'Detection error. Try again or add manually.';
+  }
 }
 
 // ---- Manual ----
