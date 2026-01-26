@@ -90,38 +90,92 @@ if (typeof cv !== 'undefined' && typeof cv.Mat !== 'undefined') {
 }
 
 /**
- * Count dots (0–6) in a half-domino image. Uses threshold + contour count.
- * Pips are dark on light, so we use BINARY_INV to find them.
+ * Count dots (0–6) in a half-domino image. Uses adaptive threshold + contour analysis.
+ * Validates pips by circularity and size to reduce false positives.
  * @param {cv.Mat} halfGray - grayscale ROI of one half
  * @returns {number} 0–6
  */
 function countDotsInHalf(halfGray) {
   const area = halfGray.rows * halfGray.cols;
-  if (area < 100) return 0; // too small, skip
+  if (area < 150) return 0; // too small, skip
+  // Use adaptive threshold for better handling of lighting variations
   const thresh = new cv.Mat();
-  cv.threshold(halfGray, thresh, 0, 255, cv.THRESH_BINARY_INV | cv.THRESH_OTSU);
+  cv.adaptiveThreshold(halfGray, thresh, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY_INV, 11, 2);
+  // Morphological opening to remove noise
+  const kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(3, 3));
+  const cleaned = new cv.Mat();
+  cv.morphologyEx(thresh, cleaned, cv.MORPH_OPEN, kernel);
+  kernel.delete();
   const contours = new cv.MatVector();
   const hier = new cv.Mat();
-  cv.findContours(thresh, contours, hier, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
-  // A pip is typically 5–25% of the half; reject tiny noise and huge blobs
-  const minArea = Math.max(4, area * 0.025);
-  const maxArea = area * 0.35;
-  let count = 0;
+  cv.findContours(cleaned, contours, hier, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+  // Pips are roughly circular and 3–20% of the half area
+  const minArea = Math.max(8, area * 0.03);
+  const maxArea = area * 0.25;
+  const validPips = [];
   for (let i = 0; i < contours.size(); i++) {
     const c = contours.get(i);
     const a = cv.contourArea(c);
-    if (a >= minArea && a <= maxArea) count++;
+    if (a < minArea || a > maxArea) continue;
+    // Check circularity: 4π*area / perimeter² should be close to 1 for circles
+    const perim = cv.arcLength(c, true);
+    if (perim < 10) continue; // too small
+    const circularity = (4 * Math.PI * a) / (perim * perim);
+    // Accept if reasonably circular (0.5+) or if it's a large blob (might be multiple pips merged)
+    if (circularity >= 0.5 || (a > area * 0.15 && circularity >= 0.3)) {
+      validPips.push(a);
+    }
   }
   thresh.delete();
+  cleaned.delete();
   contours.delete();
   hier.delete();
+  // Count: if we have large blobs, they might be multiple pips merged (e.g., 6-pip pattern)
+  let count = validPips.length;
+  // If we have fewer than expected but large blobs, might be merged pips
+  const largeBlobs = validPips.filter(a => a > area * 0.12).length;
+  if (count < 3 && largeBlobs > 0) {
+    // Estimate: large blob might be 2-3 pips
+    count = Math.min(6, count + largeBlobs);
+  }
   return Math.min(6, Math.max(0, count));
 }
 
 /**
- * Run OpenCV pipeline: find domino-like rectangles, count dots per half, return list of [a,b].
- * We find LIGHT regions (domino faces) with THRESH_BINARY so we get the domino outline,
- * not dark pips/center-line which caused false detections.
+ * Check if a region has a center line (vertical or horizontal) indicating it's a domino.
+ * @param {cv.Mat} roi - grayscale ROI of potential domino
+ * @param {boolean} isHorizontal - true if domino is horizontal
+ * @returns {boolean}
+ */
+function hasCenterLine(roi, isHorizontal) {
+  const thresh = new cv.Mat();
+  cv.threshold(roi, thresh, 0, 255, cv.THRESH_BINARY_INV | cv.THRESH_OTSU);
+  // Look for a line near the center (center line is dark, so shows up in BINARY_INV)
+  const center = isHorizontal ? Math.floor(roi.cols / 2) : Math.floor(roi.rows / 2);
+  const margin = Math.max(2, Math.floor((isHorizontal ? roi.cols : roi.rows) * 0.15));
+  let linePixels = 0;
+  const startX = isHorizontal ? Math.max(0, center - margin) : 0;
+  const startY = isHorizontal ? 0 : Math.max(0, center - margin);
+  const endX = isHorizontal ? Math.min(roi.cols, center + margin) : roi.cols;
+  const endY = isHorizontal ? roi.rows : Math.min(roi.rows, center + margin);
+  const checkArea = (endX - startX) * (endY - startY);
+  if (checkArea < 10) {
+    thresh.delete();
+    return false;
+  }
+  for (let y = startY; y < endY; y++) {
+    for (let x = startX; x < endX; x++) {
+      if (thresh.ucharPtr(y, x)[0] > 200) linePixels++;
+    }
+  }
+  const lineRatio = linePixels / checkArea;
+  thresh.delete();
+  // Center line should have significant dark pixels (15%+ in the center region)
+  return lineRatio > 0.15;
+}
+
+/**
+ * Run OpenCV pipeline: find domino-like rectangles using edge detection, validate center line, count dots.
  * @param {HTMLCanvasElement} canvas
  * @returns {{ left: number, right: number }[]}
  */
@@ -133,58 +187,91 @@ function detectPieces(canvas) {
   src.delete();
   const blurred = new cv.Mat();
   cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0);
+  // Use Canny edge detection to find actual boundaries
+  const edges = new cv.Mat();
+  cv.Canny(blurred, edges, 50, 150);
+  // Dilate edges slightly to close gaps
+  const kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(3, 3));
+  const dilated = new cv.Mat();
+  cv.dilate(edges, dilated, kernel);
+  kernel.delete();
+  edges.delete();
   const imgArea = blurred.rows * blurred.cols;
-  const minArea = imgArea * 0.015;  // ~1.5%; ignore tiny blobs
-  const maxArea = imgArea * 0.30;   // ignore huge (whole table)
-  // Domino is ~2:1; reject thin strips (center line, shadows). Horizontal: 1.5–2.5, vertical: 0.4–0.67
+  const minArea = imgArea * 0.02;  // ~2%; more conservative
+  const maxArea = imgArea * 0.25;  // ignore huge regions
   const candidates = [];
-
-  function findCandidates(threshMat) {
-    const cont = new cv.MatVector();
-    const h = new cv.Mat();
-    cv.findContours(threshMat, cont, h, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
-    h.delete();
-    for (let i = 0; i < cont.size(); i++) {
-      const c = cont.get(i);
+  const contours = new cv.MatVector();
+  const hier = new cv.Mat();
+  cv.findContours(dilated, contours, hier, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+  dilated.delete();
+  hier.delete();
+  // First pass: strict validation with center line
+  for (let i = 0; i < contours.size(); i++) {
+    const c = contours.get(i);
+    const r = cv.boundingRect(c);
+    const a = r.width * r.height;
+    if (a < minArea || a > maxArea) continue;
+    const ar = r.width / r.height;
+    const isH = ar >= 1.6 && ar <= 2.4;  // Tighter: closer to true 2:1
+    const isV = ar >= 0.42 && ar <= 0.625;
+    if (!isH && !isV) continue;
+    // Extract ROI and validate it has a center line
+    const roi = blurred.roi(new cv.Rect(r.x, r.y, r.width, r.height));
+    if (!hasCenterLine(roi, isH)) continue;  // Skip if no center line
+    let v1, v2;
+    if (isH) {
+      const mid = Math.floor(r.x + r.width / 2);
+      const left = blurred.roi(new cv.Rect(r.x, r.y, mid - r.x, r.height));
+      const right = blurred.roi(new cv.Rect(mid, r.y, r.x + r.width - mid, r.height));
+      v1 = countDotsInHalf(left);
+      v2 = countDotsInHalf(right);
+    } else {
+      const mid = Math.floor(r.y + r.height / 2);
+      const top = blurred.roi(new cv.Rect(r.x, r.y, r.width, mid - r.y));
+      const bot = blurred.roi(new cv.Rect(r.x, mid, r.width, r.y + r.height - mid));
+      v1 = countDotsInHalf(top);
+      v2 = countDotsInHalf(bot);
+    }
+    // Only accept if both halves have valid counts
+    if (v1 >= 0 && v1 <= 6 && v2 >= 0 && v2 <= 6) {
+      candidates.push({ rect: r, area: a, left: v1, right: v2 });
+    }
+  }
+  // Fallback: if no candidates with center line, try without (might be faint center line)
+  if (candidates.length === 0) {
+    for (let i = 0; i < contours.size(); i++) {
+      const c = contours.get(i);
       const r = cv.boundingRect(c);
       const a = r.width * r.height;
       if (a < minArea || a > maxArea) continue;
       const ar = r.width / r.height;
-      const isH = ar >= 1.5 && ar <= 2.5;
-      const isV = ar >= 0.4 && ar <= 0.67;
+      const isH = ar >= 1.6 && ar <= 2.4;
+      const isV = ar >= 0.42 && ar <= 0.625;
       if (!isH && !isV) continue;
       let v1, v2;
       if (isH) {
         const mid = Math.floor(r.x + r.width / 2);
-        v1 = countDotsInHalf(blurred.roi(new cv.Rect(r.x, r.y, mid - r.x, r.height)));
-        v2 = countDotsInHalf(blurred.roi(new cv.Rect(mid, r.y, r.x + r.width - mid, r.height)));
+        const left = blurred.roi(new cv.Rect(r.x, r.y, mid - r.x, r.height));
+        const right = blurred.roi(new cv.Rect(mid, r.y, r.x + r.width - mid, r.height));
+        v1 = countDotsInHalf(left);
+        v2 = countDotsInHalf(right);
       } else {
         const mid = Math.floor(r.y + r.height / 2);
-        v1 = countDotsInHalf(blurred.roi(new cv.Rect(r.x, r.y, r.width, mid - r.y)));
-        v2 = countDotsInHalf(blurred.roi(new cv.Rect(r.x, mid, r.width, r.y + r.height - mid)));
+        const top = blurred.roi(new cv.Rect(r.x, r.y, r.width, mid - r.y));
+        const bot = blurred.roi(new cv.Rect(r.x, mid, r.width, r.y + r.height - mid));
+        v1 = countDotsInHalf(top);
+        v2 = countDotsInHalf(bot);
       }
-      if (v1 >= 0 && v1 <= 6 && v2 >= 0 && v2 <= 6) {
+      // Require at least one half to have pips (reject blank regions)
+      if (v1 >= 0 && v1 <= 6 && v2 >= 0 && v2 <= 6 && (v1 > 0 || v2 > 0)) {
         candidates.push({ rect: r, area: a, left: v1, right: v2 });
       }
     }
-    cont.delete();
   }
-
-  // Prefer light regions (domino on dark table); fallback to dark regions (domino on light table)
-  const th = new cv.Mat();
-  cv.threshold(blurred, th, 0, 255, cv.THRESH_BINARY | cv.THRESH_OTSU);
-  findCandidates(th);
-  th.delete();
-  if (candidates.length === 0) {
-    const th2 = new cv.Mat();
-    cv.threshold(blurred, th2, 0, 255, cv.THRESH_BINARY_INV | cv.THRESH_OTSU);
-    findCandidates(th2);
-    th2.delete();
-  }
-
+  contours.delete();
   blurred.delete();
   gray.delete();
-  // NMS: drop candidates that overlap too much with a larger one (avoid double-count)
+  // NMS: drop candidates that overlap too much with a larger one
   candidates.sort((a, b) => b.area - a.area);
   const kept = [];
   for (const cur of candidates) {
@@ -193,7 +280,7 @@ function detectPieces(canvas) {
     for (const k of kept) {
       const ix = Math.max(0, Math.min(r.x + r.width, k.x + k.width) - Math.max(r.x, k.x));
       const iy = Math.max(0, Math.min(r.y + r.height, k.y + k.height) - Math.max(r.y, k.y));
-      if (ix * iy / cur.area > 0.5) { overlapped = true; break; }
+      if (ix * iy / cur.area > 0.4) { overlapped = true; break; }  // 40% overlap threshold
     }
     if (!overlapped) kept.push(cur.rect);
   }
