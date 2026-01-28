@@ -17,14 +17,22 @@
     <!-- Score Display -->
     <div class="score-display">
       <button type="button" id="btnMenu" class="menu-btn" aria-label="Menu">☰</button>
-      <div class="score-value-wrap">
-        <span id="totalPoints" class="score-value">0</span>
+      <div class="score-teams" aria-label="Scoreboard">
+        <div class="team-score" id="teamABox">
+          <div class="team-name" id="teamAName">Team A</div>
+          <div class="team-points" id="teamAScore">0</div>
+        </div>
+        <div class="team-score" id="teamBBox">
+          <div class="team-name" id="teamBName">Team B</div>
+          <div class="team-points" id="teamBScore">0</div>
+        </div>
       </div>
     </div>
 
     <!-- Instruction Bar -->
     <div class="instruction-bar">
-      <span id="instructionText">Tap a domino to add to your score</span>
+      <span id="instructionText">Add leftover tiles, then apply score</span>
+      <span id="targetChip" class="chip">Target: 250</span>
     </div>
 
     <!-- Mode Toggle (minimal) -->
@@ -55,6 +63,10 @@
 
     <!-- Manual Section (default) -->
     <section class="manual-section" id="manualSection">
+      <div class="bucket-toggle" role="group" aria-label="Assign tiles to leftover bucket">
+        <button type="button" id="btnBucketA" class="bucket-btn active">Add to Team A leftovers</button>
+        <button type="button" id="btnBucketB" class="bucket-btn">Add to Team B leftovers</button>
+      </div>
       <div id="dominoGrid" class="domino-grid"></div>
     </section>
 
@@ -77,10 +89,68 @@
     <!-- List View (hidden) -->
     <div id="listView" class="list-view hidden">
       <div class="list-header">
-        <h2>Added Pieces</h2>
+        <h2>Score hand</h2>
         <button type="button" id="btnCloseList" class="close-btn">×</button>
       </div>
-      <ul id="selectedList" class="piece-list-full"></ul>
+
+      <div class="panel">
+        <div class="form-grid">
+          <label class="field">
+            <span class="field-label">Hand result</span>
+            <select id="handType" class="select">
+              <option value="win" selected>Win (someone went out)</option>
+              <option value="tranque">Tranque (lock)</option>
+              <option value="bonus">Bonus only</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="field-label">Award points to</span>
+            <select id="awardTeam" class="select">
+              <option value="A" selected>Team A</option>
+              <option value="B">Team B</option>
+            </select>
+          </label>
+
+          <label class="field hidden" id="startingTeamField">
+            <span class="field-label">If tie (tranque)</span>
+            <select id="startingTeam" class="select">
+              <option value="A" selected>Starter: Team A</option>
+              <option value="B">Starter: Team B</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="bonus-row">
+          <label class="check"><input type="checkbox" id="bonusOpeningPass" /> Opening pass bonus</label>
+          <label class="check"><input type="checkbox" id="bonusPaseCorrido" /> Pase corrido (+25)</label>
+          <label class="check"><input type="checkbox" id="bonusCapicua" /> Capicúa (+25)</label>
+        </div>
+
+        <div class="bucket-summary">
+          <div class="bucket-card">
+            <div class="bucket-title"><span id="bucketATitle">Team A leftovers</span> <span class="bucket-total" id="bucketATotal">0</span></div>
+            <ul id="bucketAList" class="bucket-list"></ul>
+          </div>
+          <div class="bucket-card">
+            <div class="bucket-title"><span id="bucketBTitle">Team B leftovers</span> <span class="bucket-total" id="bucketBTotal">0</span></div>
+            <ul id="bucketBList" class="bucket-list"></ul>
+          </div>
+        </div>
+
+        <div class="actions-row">
+          <button type="button" id="btnClearBuckets" class="btn btn-secondary">Clear leftovers</button>
+          <button type="button" id="btnApplyScore" class="btn btn-primary">Apply score</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="history-header">
+          <h3>History</h3>
+          <button type="button" id="btnNewGame" class="btn btn-secondary">New game</button>
+        </div>
+        <ul id="historyList" class="history-list"></ul>
+      </div>
     </div>
   </main>
 
