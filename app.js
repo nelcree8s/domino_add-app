@@ -285,12 +285,14 @@ function applyScore() {
     detail = 'Bonuses only';
   } else if (type === 'win') {
     const losing = awardTeam === 'A' ? 'B' : 'A';
+    // In 500-point games, some groups count ALL remaining tiles (winner+loser)
     if (game.target === 500 && game.rules.countAllHandsIn500) {
       base = sums.A + sums.B;
       detail = `Win: all hands (${sums.A}+${sums.B})`;
     } else {
+      // Standard: count only losing team's leftovers
       base = sums[losing];
-      detail = `Win: opponents hand (${sums[losing]})`;
+      detail = `Win: ${game.teams[losing].name} leftovers (${sums[losing]})`;
     }
   } else if (type === 'tranque') {
     if (sums.A < sums.B) awardTeam = 'A';
@@ -303,9 +305,13 @@ function applyScore() {
 
   const delta = base + bonus;
   if (delta <= 0) {
-    alert('Nothing to apply. Add leftovers and/or bonuses first.');
+    alert('Nothing to apply. Add leftover tiles to the losing team\'s bucket and/or check bonuses first.');
     return;
   }
+  
+  // Confirm before applying
+  const confirmMsg = `Award ${delta} points to ${game.teams[awardTeam].name}?\n\nBase: ${base} (leftovers)\nBonuses: ${bonus}\nTotal: ${delta}`;
+  if (!confirm(confirmMsg)) return;
 
   game.teams[awardTeam].score += delta;
   game.history.push({
