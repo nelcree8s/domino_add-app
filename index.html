@@ -1,164 +1,195 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#1a1a2e" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Domino Score</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
-  <main class="main">
-    <!-- Score Display -->
-    <div class="score-display">
-      <button type="button" id="btnMenu" class="menu-btn" aria-label="Menu">☰</button>
-      <div class="score-teams" aria-label="Scoreboard">
-        <div class="team-score" id="teamABox">
-          <div class="team-name" id="teamAName">Team A</div>
-          <div class="team-points" id="teamAScore">0</div>
-        </div>
-        <div class="team-score" id="teamBBox">
-          <div class="team-name" id="teamBName">Team B</div>
-          <div class="team-points" id="teamBScore">0</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Instruction Bar -->
-    <div class="instruction-bar">
-      <span id="instructionText">Add leftover tiles, then apply score</span>
-      <span id="targetChip" class="chip">Target: 250</span>
-    </div>
-
-    <!-- Mode Toggle (minimal) -->
-    <div class="mode-toggle">
-      <button type="button" id="btnModeManual" class="mode-btn active">Manual</button>
-      <button type="button" id="btnModeCamera" class="mode-btn">Camera</button>
-    </div>
-
-    <!-- Camera Section (hidden by default) -->
-    <section class="camera-section hidden" id="cameraSection">
-      <div class="video-wrap">
-        <video id="video" playsinline autoplay muted></video>
-        <canvas id="captureCanvas" class="hidden"></canvas>
-      </div>
-      <p id="cameraStatus" class="status">Allow camera access to scan</p>
-      <div class="camera-actions">
-        <button type="button" id="btnCapture" class="btn btn-primary" disabled>Scan table</button>
-        <label class="btn btn-secondary">
-          Choose photo
-          <input type="file" id="fileInput" accept="image/*" capture="environment" class="sr-only" />
-        </label>
-      </div>
-      <div id="detectedPreview" class="detected-preview hidden">
-        <h3>Detected pieces (tap to add)</h3>
-        <ul id="detectedList" class="detected-list"></ul>
-      </div>
-    </section>
-
-    <!-- Manual Section (default) -->
-    <section class="manual-section" id="manualSection">
-      <div class="bucket-toggle" role="group" aria-label="Assign tiles to leftover bucket">
-        <button type="button" id="btnBucketA" class="bucket-btn active">Add to Team A leftovers</button>
-        <button type="button" id="btnBucketB" class="bucket-btn">Add to Team B leftovers</button>
-      </div>
-      <div id="dominoGrid" class="domino-grid"></div>
-    </section>
-
-    <!-- Bottom Nav -->
-    <nav class="bottom-nav">
-      <button type="button" id="btnCameraNav" class="nav-btn" aria-label="Camera">
-        <span class="nav-icon">📷</span>
-      </button>
-      <button type="button" id="btnListNav" class="nav-btn" aria-label="List">
-        <span class="nav-icon">📋</span>
-      </button>
-      <button type="button" id="btnClearNav" class="nav-btn" aria-label="Clear">
-        <span class="nav-icon">🗑️</span>
-      </button>
-      <button type="button" id="btnSettingsNav" class="nav-btn" aria-label="Settings">
-        <span class="nav-icon">⚙️</span>
-      </button>
-    </nav>
-
-    <!-- List View (hidden) -->
-    <div id="listView" class="list-view hidden">
-      <div class="list-header">
-        <h2>Score hand</h2>
-        <button type="button" id="btnCloseList" class="close-btn">×</button>
-      </div>
-
-      <div class="panel">
-        <div class="form-grid">
-          <label class="field">
-            <span class="field-label">Hand result</span>
-            <select id="handType" class="select">
-              <option value="win" selected>Win (someone went out)</option>
-              <option value="tranque">Tranque (lock)</option>
-              <option value="bonus">Bonus only</option>
-            </select>
-          </label>
-
-          <label class="field">
-            <span class="field-label">Award points to</span>
-            <select id="awardTeam" class="select">
-              <option value="A" selected>Team A</option>
-              <option value="B">Team B</option>
-            </select>
-          </label>
-
-          <label class="field hidden" id="startingTeamField">
-            <span class="field-label">If tie (tranque)</span>
-            <select id="startingTeam" class="select">
-              <option value="A" selected>Starter: Team A</option>
-              <option value="B">Starter: Team B</option>
-            </select>
-          </label>
-        </div>
-
-        <div class="bonus-row">
-          <label class="check"><input type="checkbox" id="bonusOpeningPass" /> Opening pass bonus</label>
-          <label class="check"><input type="checkbox" id="bonusPaseCorrido" /> Pase corrido (+25)</label>
-          <label class="check"><input type="checkbox" id="bonusCapicua" /> Capicúa (+25)</label>
-        </div>
-
-        <div class="bucket-summary">
-          <div class="bucket-card">
-            <div class="bucket-title"><span id="bucketATitle">Team A leftovers</span> <span class="bucket-total" id="bucketATotal">0</span></div>
-            <ul id="bucketAList" class="bucket-list"></ul>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#fafafa" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <title>Domino Score</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://unpkg.com/feather-icons"></script>
+  </head>
+  <body>
+    <main class="main">
+      <div class="score-shell">
+        <div class="score-card">
+          <div class="score-card__top">
+            <button
+              type="button"
+              id="btnMenu"
+              class="icon-btn"
+              aria-label="History"
+            >
+              <i data-feather="clock"></i>
+            </button>
+            <span id="targetChip" class="chip chip--light">Target: 250</span>
+            <button
+              type="button"
+              id="btnSettingsTop"
+              class="icon-btn"
+              aria-label="Settings"
+            >
+              <i data-feather="settings"></i>
+            </button>
           </div>
-          <div class="bucket-card">
-            <div class="bucket-title"><span id="bucketBTitle">Team B leftovers</span> <span class="bucket-total" id="bucketBTotal">0</span></div>
-            <ul id="bucketBList" class="bucket-list"></ul>
+          <div class="score-card__math" id="scoreCardMath">
+            Tap dots to add points
+          </div>
+          <div class="score-card__total-wrap" id="scoreCardTotalWrap">
+            <div class="score-card__total" id="scoreCardTotal">0</div>
+            <div class="score-card__unit">points</div>
           </div>
         </div>
 
-        <div class="actions-row">
-          <button type="button" id="btnClearBuckets" class="btn btn-secondary">Clear leftovers</button>
-          <button type="button" id="btnApplyScore" class="btn btn-primary">Apply score</button>
+        <div class="team-tabs" role="tablist" aria-label="Who won">
+          <button
+            type="button"
+            id="btnWinnerA"
+            class="team-tab active"
+            aria-selected="true"
+          >
+            <span class="team-tab__name" id="teamANameTab">Team A</span>
+            <span class="team-tab__score" id="teamATabScore">0</span>
+          </button>
+          <button
+            type="button"
+            id="btnWinnerB"
+            class="team-tab"
+            aria-selected="false"
+          >
+            <span class="team-tab__name" id="teamBNameTab">Team B</span>
+            <span class="team-tab__score" id="teamBTabScore">0</span>
+          </button>
+        </div>
+
+        <p id="instructionText" class="instruction-text">
+          Tap dots to add points, then apply
+        </p>
+      </div>
+
+      <section class="manual-section" id="manualSection">
+        <div id="pipPicker" class="pip-picker"></div>
+
+        <div class="bonus-row bonus-row--main">
+          <label class="check"
+            ><input type="checkbox" id="bonusOpeningPass" /> Opening pass bonus
+            (10 / 25)</label
+          >
+          <label class="check"
+            ><input type="checkbox" id="bonusPaseCorrido" /> Pase corrido
+            (+25)</label
+          >
+          <label class="check"
+            ><input type="checkbox" id="bonusCapicua" /> Capicúa (+25)</label
+          >
+        </div>
+
+        <div class="actions-row actions-row--main">
+          <button type="button" id="btnClearBuckets" class="btn btn-secondary">
+            Clear hand
+          </button>
+          <button type="button" id="btnApplyScore" class="btn btn-primary">
+            Apply score
+          </button>
+        </div>
+      </section>
+
+      <!-- Game over overlay -->
+      <div id="gameOverOverlay" class="game-over-overlay hidden">
+        <div class="game-over-card">
+          <h2 id="gameOverTitle" class="game-over-title">Team A wins!</h2>
+          <p id="gameOverSubtitle" class="game-over-subtitle">First to 250</p>
+          <button
+            type="button"
+            id="btnStartNew"
+            class="btn btn-primary btn--large"
+          >
+            Start new game
+          </button>
         </div>
       </div>
 
-      <div class="panel">
-        <div class="history-header">
-          <h3>History</h3>
-          <button type="button" id="btnNewGame" class="btn btn-secondary">New game</button>
+      <!-- Options overlay -->
+      <div id="optionsOverlay" class="options-overlay hidden">
+        <div class="options-panel">
+          <div class="options-header">
+            <h2>Options</h2>
+            <button
+              type="button"
+              id="btnCloseOptions"
+              class="close-btn"
+              aria-label="Done"
+            >
+              Done
+            </button>
+          </div>
+
+          <div class="options-section">
+            <h3 class="options-section-title">Game</h3>
+            <label class="options-field">
+              <span class="options-label">Target score</span>
+              <select id="optTarget" class="select">
+                <option value="200">200</option>
+                <option value="250">250</option>
+                <option value="500">500</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="options-section">
+            <h3 class="options-section-title">Rules</h3>
+            <label class="options-toggle">
+              <span class="options-label">Opening pass bonus</span>
+              <input type="checkbox" id="optOpeningPass" checked />
+              <span class="toggle-switch"></span>
+            </label>
+            <label class="options-toggle">
+              <span class="options-label">In 500, count all hands on win</span>
+              <input type="checkbox" id="optCountAll500" />
+              <span class="toggle-switch"></span>
+            </label>
+          </div>
+
+          <div class="options-actions">
+            <button type="button" id="btnApplyOptions" class="btn btn-primary">
+              Apply
+            </button>
+          </div>
         </div>
-        <ul id="historyList" class="history-list"></ul>
       </div>
-    </div>
-  </main>
 
-  <script>
-    var Module = { onRuntimeInitialized: function() { window.dispatchEvent(new Event('opencvReady')); } };
-  </script>
-  <script async src="https://docs.opencv.org/4.x/opencv.js" type="text/javascript"></script>
+      <!-- History drawer -->
+      <div id="listView" class="list-view hidden">
+        <div class="list-header">
+          <h2>Recent hands</h2>
+          <button type="button" id="btnCloseList" class="close-btn">×</button>
+        </div>
 
-  <script src="app.js"></script>
-</body>
+        <div class="panel history-panel">
+          <div class="history-header">
+            <h3>History</h3>
+            <button type="button" id="btnNewGame" class="btn btn-secondary">
+              New game
+            </button>
+          </div>
+          <ul id="historyList" class="history-list"></ul>
+        </div>
+      </div>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
 </html>
