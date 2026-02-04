@@ -7,6 +7,191 @@
  * - Open "Score hand" (list icon), choose Win / Tranque / Bonus, apply score
  */
 
+// -------------------- i18n --------------------
+const STRINGS = {
+  en: {
+    title: "Domino Score",
+    ariaHistory: "History",
+    ariaRules: "Rules",
+    ariaSettings: "Settings",
+    ariaClose: "Close",
+    targetLabel: "Target: {target}",
+    target500Bonuses: "500 (bonuses)",
+    tapDotsToAddPoints: "Tap dots to add points",
+    tapDotsThenApply: "Tap dots to add points, then apply",
+    teamA: "Team A",
+    teamB: "Team B",
+    bonusOpeningPass: "Pase primera mano (opening pass)",
+    bonusPaseCorrido: "Pase corrido (skipping everyone)",
+    bonusCapicua: "Capicúa (matching ends)",
+    bonusChuchazo: "Chuchazo (double-blank)",
+    ariaWhatIsThis: "What is this?",
+    clearHand: "Clear hand",
+    applyScore: "Apply score",
+    instructionAwardTo: "{total} pts • Award to {name}",
+    instructionWins: "{name} wins! ({score} ≥ {target})",
+    gameOverWins: "{name} wins!",
+    gameOverFirstTo: "First to {target}",
+    startNewGame: "Start new game",
+    recentHands: "Recent hands",
+    history: "History",
+    newGame: "New game",
+    options: "Options",
+    game: "Game",
+    gameType: "Game type",
+    gameType200: "200",
+    gameType250: "250",
+    gameType500: "500",
+    gameType500Bonuses: "500 with bonuses",
+    rules: "Rules",
+    openingPassBonus: "Opening pass bonus",
+    countAll500: "In 500, count all hands on win",
+    bonusPoints: "Bonus points",
+    paseCorridoPts: "Pase corrido (pts)",
+    capicuaPts: "Capicúa (pts)",
+    chuchazoPts: "Chuchazo / double-blank (pts)",
+    apply: "Apply",
+    addPip: "Add {v}",
+    clearHandConfirm: "Clear hand?",
+    alertAddPips: "Add leftover pips and/or check bonuses first.",
+    confirmAward: "Award {delta} to {name}?\n\nLeftovers: {base}\nBonuses: {bonus}{roundBonus}\nTotal: {delta}",
+    confirmNewGame: "Start a new game? This will reset scores and history.",
+    teamAPrompt: "Team A name",
+    teamBPrompt: "Team B name",
+    tooltipOpeningPass: "First play of the hand; if the next player cannot play, the first player's team gets {pts} pts. Nullified if the next player after that also cannot play.",
+    tooltipPaseCorrido: "A player plays and all three opponents cannot play. That player's team gets {pts} pts (configurable in Options). That player then plays again.",
+    tooltipCapicua: "The last piece matches the number at the opposite end of the chain. Worth {pts} pts (configurable in Options). Nullified if matched with a blank or double.",
+    tooltipChuchazo: "The winning piece is the double-blank (0–0), \"la Chucha!\" Worth {pts} pts (configurable in Options).",
+    rulesHowYouScore: "How you score points",
+    rulesWinningHand: "1. Winning the hand (leftover pieces)",
+    rulesWinningHandP: "When a player gets rid of all their pieces, their team wins. Add up the dots on all pieces not played. That total goes to the winning team's score.",
+    rulesPasePrimera: "2. Pase primera mano (opening pass)",
+    rulesPasePrimeraP: "Only on the very first play of the hand. If the next player cannot play, the first player's team gets 10 (200/250) or 25 (500). Nullified if the next player after that also cannot play.",
+    rulesPaseCorrido: "3. Pase corrido (skipping everyone)",
+    rulesPaseCorridoP: "A player plays and all three opponents cannot play. That player's team gets 25 pts (default; configurable). That player then plays again.",
+    rulesCapicua: "4. Capicúa (matching ends)",
+    rulesCapicuaP: "The last piece matches the number at the opposite end of the chain. Worth 50 pts (default; configurable). Nullified if matched with a blank or double.",
+    rulesChuchazo: "5. Chuchazo (double-blank)",
+    rulesChuchazoP: "The winning piece is the double-blank (0–0), \"la Chucha!\" Worth 50 pts (default; configurable).",
+    rulesTranque: "6. Tranque (lock)",
+    rulesTranqueP: "No one can play. Compare hands; lowest total wins and gets opponents' leftover points. Tie goes to the player who started the hand.",
+    rulesGameTypes: "Game types",
+    rulesGameTypesP1: "200, 250, 500: First to reach target score.",
+    rulesGameTypesP2: "500 with bonuses: Same as 500, plus round bonuses: 1st hand +100, 2nd +75, 3rd +50, 4th +25.",
+    openingPassPlus: "Opening pass +{pts}",
+    paseCorridoPlus: "Pase corrido +{pts}",
+    capicuaPlus: "Capicúa +{pts}",
+    chuchazoPlus: "Chuchazo +{pts}",
+    roundBonusLine: "\nRound bonus: +{pts}",
+    leftOverLabel: "Leftovers: {base}",
+  },
+  es: {
+    title: "Domino Puntos",
+    ariaHistory: "Historial",
+    ariaRules: "Reglas",
+    ariaSettings: "Ajustes",
+    ariaClose: "Cerrar",
+    targetLabel: "Meta: {target}",
+    target500Bonuses: "500 con premios",
+    tapDotsToAddPoints: "Toca los puntos para sumar",
+    tapDotsThenApply: "Toca los puntos y luego aplica",
+    teamA: "Equipo A",
+    teamB: "Equipo B",
+    bonusOpeningPass: "Pase primera mano",
+    bonusPaseCorrido: "Pase corrido",
+    bonusCapicua: "Capicúa",
+    bonusChuchazo: "Chuchazo (doble blanco)",
+    ariaWhatIsThis: "¿Qué es esto?",
+    clearHand: "Borrar mano",
+    applyScore: "Aplicar puntos",
+    instructionAwardTo: "{total} pts • Para {name}",
+    instructionWins: "¡{name} gana! ({score} ≥ {target})",
+    gameOverWins: "¡{name} gana!",
+    gameOverFirstTo: "Primero en llegar a {target}",
+    startNewGame: "Nueva partida",
+    recentHands: "Manos recientes",
+    history: "Historial",
+    newGame: "Nueva partida",
+    options: "Opciones",
+    game: "Partida",
+    gameType: "Tipo de partida",
+    gameType200: "200",
+    gameType250: "250",
+    gameType500: "500",
+    gameType500Bonuses: "500 con premios",
+    rules: "Reglas",
+    openingPassBonus: "Premio pase primera mano",
+    countAll500: "En 500, contar todas las manos al ganar",
+    bonusPoints: "Puntos de premios",
+    paseCorridoPts: "Pase corrido (pts)",
+    capicuaPts: "Capicúa (pts)",
+    chuchazoPts: "Chuchazo / doble blanco (pts)",
+    apply: "Aplicar",
+    addPip: "Añadir {v}",
+    clearHandConfirm: "¿Borrar mano?",
+    alertAddPips: "Añade puntos de fichas y/o marca los premios primero.",
+    confirmAward: "¿Dar {delta} a {name}?\n\nFichas: {base}\nPremios: {bonus}{roundBonus}\nTotal: {delta}",
+    confirmNewGame: "¿Empezar una partida nueva? Se reiniciarán los puntajes y el historial.",
+    teamAPrompt: "Nombre del equipo A",
+    teamBPrompt: "Nombre del equipo B",
+    tooltipOpeningPass: "Primera jugada de la mano; si el siguiente no puede jugar, el equipo del primero recibe {pts} pts. Se anula si el siguiente tampoco puede jugar.",
+    tooltipPaseCorrido: "Un jugador juega y los tres contrarios no pueden. Su equipo recibe {pts} pts (configurable en Opciones). Ese jugador vuelve a jugar.",
+    tooltipCapicua: "La última ficha coincide con el número al otro extremo de la cadena. Vale {pts} pts (configurable en Opciones). Se anula si coincide con blanco o doble.",
+    tooltipChuchazo: "La ficha ganadora es el doble blanco (0–0), \"¡la Chucha!\" Vale {pts} pts (configurable en Opciones).",
+    rulesHowYouScore: "Cómo se suman puntos",
+    rulesWinningHand: "1. Ganar la mano (fichas sobrantes)",
+    rulesWinningHandP: "Cuando un jugador se queda sin fichas, su equipo gana. Suma los puntos de todas las fichas no jugadas. Ese total va al puntaje del equipo ganador.",
+    rulesPasePrimera: "2. Pase primera mano",
+    rulesPasePrimeraP: "Solo en la primera jugada de la mano. Si el siguiente no puede jugar, el equipo del primero recibe 10 (200/250) o 25 (500). Se anula si el siguiente tampoco puede jugar.",
+    rulesPaseCorrido: "3. Pase corrido",
+    rulesPaseCorridoP: "Un jugador juega y los tres contrarios no pueden. Su equipo recibe 25 pts (por defecto; configurable). Ese jugador vuelve a jugar.",
+    rulesCapicua: "4. Capicúa",
+    rulesCapicuaP: "La última ficha coincide con el número al otro extremo. Vale 50 pts (por defecto; configurable). Se anula si coincide con blanco o doble.",
+    rulesChuchazo: "5. Chuchazo (doble blanco)",
+    rulesChuchazoP: "La ficha ganadora es el doble blanco (0–0), \"¡la Chucha!\" Vale 50 pts (por defecto; configurable).",
+    rulesTranque: "6. Tranque (bloqueo)",
+    rulesTranqueP: "Nadie puede jugar. Se comparan manos; gana el menor total y recibe los puntos del rival. En empate gana quien empezó la mano.",
+    rulesGameTypes: "Tipos de partida",
+    rulesGameTypesP1: "200, 250, 500: El primero en llegar a la meta.",
+    rulesGameTypesP2: "500 con premios: Igual que 500, más premios por ronda: 1.ª mano +100, 2.ª +75, 3.ª +50, 4.ª +25.",
+    openingPassPlus: "Pase primera mano +{pts}",
+    paseCorridoPlus: "Pase corrido +{pts}",
+    capicuaPlus: "Capicúa +{pts}",
+    chuchazoPlus: "Chuchazo +{pts}",
+    roundBonusLine: "\nPremio de ronda: +{pts}",
+    leftOverLabel: "Fichas: {base}",
+  },
+};
+
+function getLocale() {
+  const lang = typeof navigator !== "undefined" && (navigator.language || (navigator.languages && navigator.languages[0]));
+  const code = lang ? String(lang).toLowerCase().split("-")[0] : "en";
+  return code === "es" ? "es" : "en";
+}
+
+const locale = getLocale();
+
+function t(key, replacements = {}) {
+  let s = (STRINGS[locale] && STRINGS[locale][key]) || (STRINGS.en && STRINGS.en[key]) || key;
+  Object.keys(replacements).forEach((k) => {
+    s = s.replace(new RegExp(`\\{${k}\\}`, "g"), String(replacements[k]));
+  });
+  return s;
+}
+
+function applyLocale() {
+  document.documentElement.lang = locale;
+  if (document.title !== undefined) document.title = t("title");
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    const key = el.getAttribute("data-i18n");
+    if (key) el.textContent = t(key);
+  });
+  document.querySelectorAll("[data-i18n-aria]").forEach((el) => {
+    const key = el.getAttribute("data-i18n-aria");
+    if (key) el.setAttribute("aria-label", t(key));
+  });
+}
+
 // -------------------- DOM helpers --------------------
 const $ = (id) => document.getElementById(id);
 
@@ -77,8 +262,8 @@ function defaultGame() {
     target: targetFromGameType(gameType),
     roundNumber: 1,
     teams: {
-      A: { id: "A", name: "Team A", score: 0 },
-      B: { id: "B", name: "Team B", score: 0 },
+      A: { id: "A", name: t("teamA"), score: 0 },
+      B: { id: "B", name: t("teamB"), score: 0 },
     },
     rules: {
       openingPassEnabled: true,
@@ -186,22 +371,22 @@ function computeBonuses() {
   if (bonusOpeningPassEl?.checked && game.rules.openingPassEnabled) {
     const pts = openingPassPoints();
     bonus += pts;
-    parts.push(`Opening pass +${pts}`);
+    parts.push(t("openingPassPlus", { pts }));
   }
   const pasePts = game.rules.paseCorridoPoints ?? 25;
   if (bonusPaseCorridoEl?.checked) {
     bonus += pasePts;
-    parts.push(`Pase corrido +${pasePts}`);
+    parts.push(t("paseCorridoPlus", { pts: pasePts }));
   }
   const capicuaPts = game.rules.capicuaPoints ?? 50;
   if (bonusCapicuaEl?.checked) {
     bonus += capicuaPts;
-    parts.push(`Capicúa +${capicuaPts}`);
+    parts.push(t("capicuaPlus", { pts: capicuaPts }));
   }
   const chuchazoPts = game.rules.chuchazoPoints ?? 50;
   if (bonusChuchazoEl?.checked) {
     bonus += chuchazoPts;
-    parts.push(`Chuchazo +${chuchazoPts}`);
+    parts.push(t("chuchazoPlus", { pts: chuchazoPts }));
   }
   return { bonus, parts };
 }
@@ -230,8 +415,8 @@ function render() {
   if (targetChipEl) {
     const label =
       game.gameType === "500-bonuses"
-        ? "500 (bonuses)"
-        : `Target: ${game.target}`;
+        ? t("target500Bonuses")
+        : t("targetLabel", { target: game.target });
     targetChipEl.textContent = label;
   }
   if (scoreCardTotalEl) scoreCardTotalEl.textContent = String(total);
@@ -241,7 +426,7 @@ function render() {
   if (scoreCardMathEl) {
     if (!leftovers.length) {
       scoreCardMathEl.innerHTML =
-        '<span class="score-card__placeholder">Tap dots to add points</span>';
+        `<span class="score-card__placeholder">${t("tapDotsToAddPoints")}</span>`;
     } else {
       const maxChips = 4;
       const remaining = Math.max(0, leftovers.length - maxChips);
@@ -264,9 +449,16 @@ function render() {
 
   if (instructionTextEl) {
     if (gameWinner) {
-      instructionTextEl.textContent = `${game.teams[gameWinner].name} wins! (${game.teams[gameWinner].score} ≥ ${game.target})`;
+      instructionTextEl.textContent = t("instructionWins", {
+        name: game.teams[gameWinner].name,
+        score: game.teams[gameWinner].score,
+        target: game.target,
+      });
     } else {
-      instructionTextEl.textContent = `${total} pts • Award to ${game.teams[winner].name}`;
+      instructionTextEl.textContent = t("instructionAwardTo", {
+        total,
+        name: game.teams[winner].name,
+      });
     }
   }
 
@@ -283,9 +475,9 @@ function render() {
     const hasWinner = !!gameWinner;
     gameOverOverlay.classList.toggle("hidden", !hasWinner);
     if (hasWinner && gameOverTitle)
-      gameOverTitle.textContent = `${game.teams[gameWinner].name} wins!`;
+      gameOverTitle.textContent = t("gameOverWins", { name: game.teams[gameWinner].name });
     if (hasWinner && gameOverSubtitle)
-      gameOverSubtitle.textContent = `First to ${game.target}`;
+      gameOverSubtitle.textContent = t("gameOverFirstTo", { target: game.target });
   }
 
   if (historyListEl) {
@@ -323,19 +515,21 @@ function applyScore() {
   }
 
   if (delta <= 0) {
-    alert("Add leftover pips and/or check bonuses first.");
+    alert(t("alertAddPips"));
     return;
   }
 
-  const confirmMsg = `Award ${delta} to ${
-    game.teams[awardTeam].name
-  }?\n\nLeftovers: ${base}\nBonuses: ${bonus}${
-    rndBonus ? `\nRound bonus: +${rndBonus}` : ""
-  }\nTotal: ${delta}`;
+  const confirmMsg = t("confirmAward", {
+    delta,
+    name: game.teams[awardTeam].name,
+    base,
+    bonus,
+    roundBonus: rndBonus ? t("roundBonusLine", { pts: rndBonus }) : "",
+  });
   if (!confirm(confirmMsg)) return;
 
   game.teams[awardTeam].score += delta;
-  const detail = base > 0 ? `Leftovers: ${base}` : "";
+  const detail = base > 0 ? t("leftOverLabel", { base }) : "";
   game.history.push({
     ts: Date.now(),
     type: "win",
@@ -359,16 +553,16 @@ function applyScore() {
 // -------------------- New game --------------------
 function newGame() {
   const aName = (
-    prompt("Team A name", game.teams.A.name) || game.teams.A.name
+    prompt(t("teamAPrompt"), game.teams.A.name) || game.teams.A.name
   ).trim();
   const bName = (
-    prompt("Team B name", game.teams.B.name) || game.teams.B.name
+    prompt(t("teamBPrompt"), game.teams.B.name) || game.teams.B.name
   ).trim();
   const prevGameType = game.gameType;
 
   game = defaultGame();
-  game.teams.A.name = aName || "Team A";
-  game.teams.B.name = bName || "Team B";
+  game.teams.A.name = aName || t("teamA");
+  game.teams.B.name = bName || t("teamB");
   game.gameType = GAME_TYPES.includes(prevGameType)
     ? prevGameType
     : "500-bonuses";
@@ -387,7 +581,7 @@ function buildPipPicker() {
     const btn = document.createElement("button");
     btn.className = `pip-btn pip-${v}`;
     btn.type = "button";
-    btn.setAttribute("aria-label", `Add ${v}`);
+    btn.setAttribute("aria-label", t("addPip", { v }));
     btn.dataset.value = String(v);
     btn.innerHTML = renderDots(v, `pip-${v}`);
     btn.addEventListener("click", () => {
@@ -427,7 +621,7 @@ function wireUI() {
 
   if (btnClearBuckets)
     btnClearBuckets.addEventListener("click", () => {
-      if (leftovers.length && confirm("Clear hand?")) {
+      if (leftovers.length && confirm(t("clearHandConfirm"))) {
         clearLeftovers();
         render();
       }
@@ -437,8 +631,7 @@ function wireUI() {
 
   if (btnNewGame)
     btnNewGame.addEventListener("click", () => {
-      if (confirm("Start a new game? This will reset scores and history."))
-        newGame();
+      if (confirm(t("confirmNewGame"))) newGame();
     });
 
   if (btnStartNew)
@@ -509,13 +702,13 @@ function wireUI() {
       const key = btn.dataset.tooltip;
       let text = "";
       if (key === "opening-pass") {
-        text = `First play of the hand; if the next player cannot play, the first player's team gets ${openingPassPoints()} pts. Nullified if the next player after that also cannot play.`;
+        text = t("tooltipOpeningPass", { pts: openingPassPoints() });
       } else if (key === "pase-corrido") {
-        text = `A player plays and all three opponents cannot play. That player's team gets ${game.rules.paseCorridoPoints ?? 25} pts (configurable in Options). That player then plays again.`;
+        text = t("tooltipPaseCorrido", { pts: game.rules.paseCorridoPoints ?? 25 });
       } else if (key === "capicua") {
-        text = `The last piece matches the number at the opposite end of the chain. Worth ${game.rules.capicuaPoints ?? 50} pts (configurable in Options). Nullified if matched with a blank or double.`;
+        text = t("tooltipCapicua", { pts: game.rules.capicuaPoints ?? 50 });
       } else if (key === "chuchazo") {
-        text = `The winning piece is the double-blank (0–0), "la Chucha!" Worth ${game.rules.chuchazoPoints ?? 50} pts (configurable in Options).`;
+        text = t("tooltipChuchazo", { pts: game.rules.chuchazoPoints ?? 50 });
       }
       if (!text) return;
       const tooltip = document.createElement("div");
@@ -547,6 +740,7 @@ function wireUI() {
 
 // -------------------- Init --------------------
 function init() {
+  applyLocale();
   wireUI();
   render();
   if (typeof feather !== "undefined") feather.replace();

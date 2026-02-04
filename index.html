@@ -31,6 +31,7 @@
               type="button"
               id="btnMenu"
               class="icon-btn"
+              data-i18n-aria="ariaHistory"
               aria-label="History"
             >
               <i data-feather="clock"></i>
@@ -41,6 +42,7 @@
                 type="button"
                 id="btnRulesTop"
                 class="icon-btn"
+                data-i18n-aria="ariaRules"
                 aria-label="Rules"
               >
                 <i data-feather="help-circle"></i>
@@ -49,6 +51,7 @@
                 type="button"
                 id="btnSettingsTop"
                 class="icon-btn"
+                data-i18n-aria="ariaSettings"
                 aria-label="Settings"
               >
                 <i data-feather="settings"></i>
@@ -71,7 +74,7 @@
             class="team-tab active"
             aria-selected="true"
           >
-            <span class="team-tab__name" id="teamANameTab">Team A</span>
+            <span class="team-tab__name" id="teamANameTab" data-i18n="teamA">Team A</span>
             <span class="team-tab__score" id="teamATabScore">0</span>
           </button>
           <button
@@ -80,12 +83,12 @@
             class="team-tab"
             aria-selected="false"
           >
-            <span class="team-tab__name" id="teamBNameTab">Team B</span>
+            <span class="team-tab__name" id="teamBNameTab" data-i18n="teamB">Team B</span>
             <span class="team-tab__score" id="teamBTabScore">0</span>
           </button>
         </div>
 
-        <p id="instructionText" class="instruction-text">
+        <p id="instructionText" class="instruction-text" data-i18n="tapDotsThenApply">
           Tap dots to add points, then apply
         </p>
       </div>
@@ -95,44 +98,44 @@
 
         <div class="bonus-row bonus-row--main">
           <label class="check"
-            ><input type="checkbox" id="bonusOpeningPass" /> Pase primera mano
-            (opening pass)<button
+            ><input type="checkbox" id="bonusOpeningPass" /><span data-i18n="bonusOpeningPass">Pase primera mano (opening pass)</span><button
               type="button"
               class="tooltip-trigger"
               data-tooltip="opening-pass"
+              data-i18n-aria="ariaWhatIsThis"
               aria-label="What is this?"
             >
               ?
             </button></label
           >
           <label class="check"
-            ><input type="checkbox" id="bonusPaseCorrido" /> Pase corrido
-            (skipping everyone)<button
+            ><input type="checkbox" id="bonusPaseCorrido" /><span data-i18n="bonusPaseCorrido">Pase corrido (skipping everyone)</span><button
               type="button"
               class="tooltip-trigger"
               data-tooltip="pase-corrido"
+              data-i18n-aria="ariaWhatIsThis"
               aria-label="What is this?"
             >
               ?
             </button></label
           >
           <label class="check"
-            ><input type="checkbox" id="bonusCapicua" /> Capicúa (matching
-            ends)<button
+            ><input type="checkbox" id="bonusCapicua" /><span data-i18n="bonusCapicua">Capicúa (matching ends)</span><button
               type="button"
               class="tooltip-trigger"
               data-tooltip="capicua"
+              data-i18n-aria="ariaWhatIsThis"
               aria-label="What is this?"
             >
               ?
             </button></label
           >
           <label class="check"
-            ><input type="checkbox" id="bonusChuchazo" /> Chuchazo
-            (double-blank)<button
+            ><input type="checkbox" id="bonusChuchazo" /><span data-i18n="bonusChuchazo">Chuchazo (double-blank)</span><button
               type="button"
               class="tooltip-trigger"
               data-tooltip="chuchazo"
+              data-i18n-aria="ariaWhatIsThis"
               aria-label="What is this?"
             >
               ?
@@ -141,10 +144,10 @@
         </div>
 
         <div class="actions-row actions-row--main">
-          <button type="button" id="btnClearBuckets" class="btn btn-secondary">
+          <button type="button" id="btnClearBuckets" class="btn btn-secondary" data-i18n="clearHand">
             Clear hand
           </button>
-          <button type="button" id="btnApplyScore" class="btn btn-primary">
+          <button type="button" id="btnApplyScore" class="btn btn-primary" data-i18n="applyScore">
             Apply score
           </button>
         </div>
@@ -159,6 +162,7 @@
             type="button"
             id="btnStartNew"
             class="btn btn-primary btn--large"
+            data-i18n="startNewGame"
           >
             Start new game
           </button>
@@ -169,11 +173,12 @@
       <div id="optionsOverlay" class="options-overlay hidden">
         <div class="options-panel">
           <div class="options-header">
-            <h2>Options</h2>
+            <h2 data-i18n="options">Options</h2>
             <button
               type="button"
               id="btnCloseOptions"
               class="close-btn"
+              data-i18n-aria="ariaClose"
               aria-label="Close"
             >
               ×
@@ -181,36 +186,36 @@
           </div>
 
           <div class="options-section">
-            <h3 class="options-section-title">Game</h3>
+            <h3 class="options-section-title" data-i18n="game">Game</h3>
             <label class="options-field">
-              <span class="options-label">Game type</span>
+              <span class="options-label" data-i18n="gameType">Game type</span>
               <select id="optGameType" class="select">
-                <option value="200">200</option>
-                <option value="250">250</option>
-                <option value="500">500</option>
-                <option value="500-bonuses">500 with bonuses</option>
+                <option value="200" data-i18n="gameType200">200</option>
+                <option value="250" data-i18n="gameType250">250</option>
+                <option value="500" data-i18n="gameType500">500</option>
+                <option value="500-bonuses" data-i18n="gameType500Bonuses">500 with bonuses</option>
               </select>
             </label>
           </div>
 
           <div class="options-section">
-            <h3 class="options-section-title">Rules</h3>
+            <h3 class="options-section-title" data-i18n="rules">Rules</h3>
             <label class="options-toggle">
-              <span class="options-label">Opening pass bonus</span>
+              <span class="options-label" data-i18n="openingPassBonus">Opening pass bonus</span>
               <input type="checkbox" id="optOpeningPass" checked />
               <span class="toggle-switch"></span>
             </label>
             <label class="options-toggle">
-              <span class="options-label">In 500, count all hands on win</span>
+              <span class="options-label" data-i18n="countAll500">In 500, count all hands on win</span>
               <input type="checkbox" id="optCountAll500" />
               <span class="toggle-switch"></span>
             </label>
           </div>
 
           <div class="options-section">
-            <h3 class="options-section-title">Bonus points</h3>
+            <h3 class="options-section-title" data-i18n="bonusPoints">Bonus points</h3>
             <label class="options-field">
-              <span class="options-label">Pase corrido (pts)</span>
+              <span class="options-label" data-i18n="paseCorridoPts">Pase corrido (pts)</span>
               <input
                 type="number"
                 id="optPaseCorridoPoints"
@@ -220,7 +225,7 @@
               />
             </label>
             <label class="options-field">
-              <span class="options-label">Capicúa (pts)</span>
+              <span class="options-label" data-i18n="capicuaPts">Capicúa (pts)</span>
               <input
                 type="number"
                 id="optCapicuaPoints"
@@ -230,7 +235,7 @@
               />
             </label>
             <label class="options-field">
-              <span class="options-label">Chuchazo / double-blank (pts)</span>
+              <span class="options-label" data-i18n="chuchazoPts">Chuchazo / double-blank (pts)</span>
               <input
                 type="number"
                 id="optChuchazoPoints"
@@ -242,7 +247,7 @@
           </div>
 
           <div class="options-actions">
-            <button type="button" id="btnApplyOptions" class="btn btn-primary">
+            <button type="button" id="btnApplyOptions" class="btn btn-primary" data-i18n="apply">
               Apply
             </button>
           </div>
@@ -253,11 +258,12 @@
       <div id="rulesOverlay" class="options-overlay hidden">
         <div class="options-panel">
           <div class="options-header">
-            <h2>Rules</h2>
+            <h2 data-i18n="rules">Rules</h2>
             <button
               type="button"
               id="btnCloseRules"
               class="close-btn"
+              data-i18n-aria="ariaClose"
               aria-label="Close"
             >
               ×
@@ -265,65 +271,36 @@
           </div>
 
           <div class="rules-content">
-            <h3>How you score points</h3>
+            <h3 data-i18n="rulesHowYouScore">How you score points</h3>
             <div class="rule-item">
-              <h4>1. Winning the hand (leftover pieces)</h4>
-              <p>
-                When a player gets rid of all their pieces, their team wins. Add
-                up the dots on all pieces not played. That total goes to the
-                winning team's score.
-              </p>
+              <h4 data-i18n="rulesWinningHand">1. Winning the hand (leftover pieces)</h4>
+              <p data-i18n="rulesWinningHandP">When a player gets rid of all their pieces, their team wins. Add up the dots on all pieces not played. That total goes to the winning team's score.</p>
             </div>
             <div class="rule-item">
-              <h4>2. Pase primera mano (opening pass)</h4>
-              <p>
-                Only on the very first play of the hand. If the next player
-                cannot play, the first player's team gets
-                <strong>10</strong> (200/250) or <strong>25</strong> (500).
-                Nullified if the next player after that also cannot play.
-              </p>
+              <h4 data-i18n="rulesPasePrimera">2. Pase primera mano (opening pass)</h4>
+              <p data-i18n="rulesPasePrimeraP">Only on the very first play of the hand. If the next player cannot play, the first player's team gets 10 (200/250) or 25 (500). Nullified if the next player after that also cannot play.</p>
             </div>
             <div class="rule-item">
-              <h4>3. Pase corrido (skipping everyone)</h4>
-              <p>
-                A player plays and all three opponents cannot play. That
-                player's team gets <strong>25</strong> pts (default;
-                configurable). That player then plays again.
-              </p>
+              <h4 data-i18n="rulesPaseCorrido">3. Pase corrido (skipping everyone)</h4>
+              <p data-i18n="rulesPaseCorridoP">A player plays and all three opponents cannot play. That player's team gets 25 pts (default; configurable). That player then plays again.</p>
             </div>
             <div class="rule-item">
-              <h4>4. Capicúa (matching ends)</h4>
-              <p>
-                The last piece matches the number at the opposite end of the
-                chain. Worth <strong>50</strong> pts (default; configurable).
-                Nullified if matched with a blank or double.
-              </p>
+              <h4 data-i18n="rulesCapicua">4. Capicúa (matching ends)</h4>
+              <p data-i18n="rulesCapicuaP">The last piece matches the number at the opposite end of the chain. Worth 50 pts (default; configurable). Nullified if matched with a blank or double.</p>
             </div>
             <div class="rule-item">
-              <h4>5. Chuchazo (double-blank)</h4>
-              <p>
-                The winning piece is the double-blank (0–0), "la Chucha!" Worth
-                <strong>50</strong> pts (default; configurable).
-              </p>
+              <h4 data-i18n="rulesChuchazo">5. Chuchazo (double-blank)</h4>
+              <p data-i18n="rulesChuchazoP">The winning piece is the double-blank (0–0), "la Chucha!" Worth 50 pts (default; configurable).</p>
             </div>
             <div class="rule-item">
-              <h4>6. Tranque (lock)</h4>
-              <p>
-                No one can play. Compare hands; lowest total wins and gets
-                opponents' leftover points. Tie goes to the player who started
-                the hand.
-              </p>
+              <h4 data-i18n="rulesTranque">6. Tranque (lock)</h4>
+              <p data-i18n="rulesTranqueP">No one can play. Compare hands; lowest total wins and gets opponents' leftover points. Tie goes to the player who started the hand.</p>
             </div>
 
-            <h3 style="margin-top: 2rem">Game types</h3>
+            <h3 style="margin-top: 2rem" data-i18n="rulesGameTypes">Game types</h3>
             <div class="rule-item">
-              <p>
-                <strong>200, 250, 500:</strong> First to reach target score.
-              </p>
-              <p>
-                <strong>500 with bonuses:</strong> Same as 500, plus round
-                bonuses: 1st hand +100, 2nd +75, 3rd +50, 4th +25.
-              </p>
+              <p data-i18n="rulesGameTypesP1">200, 250, 500: First to reach target score.</p>
+              <p data-i18n="rulesGameTypesP2">500 with bonuses: Same as 500, plus round bonuses: 1st hand +100, 2nd +75, 3rd +50, 4th +25.</p>
             </div>
           </div>
         </div>
@@ -332,14 +309,14 @@
       <!-- History drawer -->
       <div id="listView" class="list-view hidden">
         <div class="list-header">
-          <h2>Recent hands</h2>
-          <button type="button" id="btnCloseList" class="close-btn">×</button>
+          <h2 data-i18n="recentHands">Recent hands</h2>
+          <button type="button" id="btnCloseList" class="close-btn" data-i18n-aria="ariaClose" aria-label="Close">×</button>
         </div>
 
         <div class="panel history-panel">
           <div class="history-header">
-            <h3>History</h3>
-            <button type="button" id="btnNewGame" class="btn btn-secondary">
+            <h3 data-i18n="history">History</h3>
+            <button type="button" id="btnNewGame" class="btn btn-secondary" data-i18n="newGame">
               New game
             </button>
           </div>
