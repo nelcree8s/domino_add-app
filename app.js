@@ -84,6 +84,7 @@ const STRINGS = {
     chuchazoPlus: "Chuchazo +{pts}",
     roundBonusLine: "\nRound bonus: +{pts}",
     leftOverLabel: "Leftovers: {base}",
+    matchScore: "Match score",
   },
   es: {
     title: "Domino Puntos",
@@ -160,6 +161,7 @@ const STRINGS = {
     chuchazoPlus: "Chuchazo +{pts}",
     roundBonusLine: "\nPremio de ronda: +{pts}",
     leftOverLabel: "Fichas: {base}",
+    matchScore: "Puntaje",
   },
 };
 
@@ -203,8 +205,14 @@ const scoreCardTotalEl = $("scoreCardTotal");
 const scoreCardTotalWrapEl = $("scoreCardTotalWrap");
 const teamANameTabEl = $("teamANameTab");
 const teamBNameTabEl = $("teamBNameTab");
-const teamATabScoreEl = $("teamATabScore");
-const teamBTabScoreEl = $("teamBTabScore");
+const matchScoreANameEl = $("matchScoreAName");
+const matchScoreBNameEl = $("matchScoreBName");
+const matchScoreAValueEl = $("matchScoreAValue");
+const matchScoreBValueEl = $("matchScoreBValue");
+const matchScoreTargetEl = $("matchScoreTarget");
+const matchScoreTargetBEl = $("matchScoreTargetB");
+const matchScoreTeamAEl = $("matchScoreTeamA");
+const matchScoreTeamBEl = $("matchScoreTeamB");
 const btnSettingsTop = $("btnSettingsTop");
 const btnRulesTop = $("btnRulesTop");
 const rulesOverlay = $("rulesOverlay");
@@ -323,6 +331,10 @@ let leftovers = [];
 /** @type {'A'|'B'} — team that won (receives points) */
 let winner = "A";
 
+/** Previous displayed scores for count-up animation */
+let prevDisplayScoreA = game.teams.A.score;
+let prevDisplayScoreB = game.teams.B.score;
+
 // Pip colors (muted, light-interface palette)
 const PIP_COLORS = [
   "#9e9e9e",
@@ -403,15 +415,70 @@ function removePip(idx) {
   leftovers.splice(idx, 1);
 }
 
+// -------------------- Count-up animation --------------------
+function countUp(el, fromVal, toVal, durationMs, onComplete) {
+  if (!el || fromVal === toVal) {
+    if (onComplete) onComplete();
+    return;
+  }
+  const start = performance.now();
+  function tick(now) {
+    const elapsed = now - start;
+    const t = Math.min(elapsed / durationMs, 1);
+    const eased = 1 - (1 - t) * (1 - t); // ease-out quad
+    const current = Math.round(fromVal + (toVal - fromVal) * eased);
+    el.textContent = String(current);
+    if (t < 1) requestAnimationFrame(tick);
+    else {
+      el.textContent = String(toVal);
+      if (onComplete) onComplete();
+    }
+  }
+  requestAnimationFrame(tick);
+}
+
 // -------------------- Render --------------------
 function render() {
   const total = pipSum(leftovers);
   const gameWinner = matchWinner();
+  const prevA = prevDisplayScoreA;
+  const prevB = prevDisplayScoreB;
 
   if (teamANameTabEl) teamANameTabEl.textContent = game.teams.A.name;
   if (teamBNameTabEl) teamBNameTabEl.textContent = game.teams.B.name;
-  if (teamATabScoreEl) teamATabScoreEl.textContent = `(${game.teams.A.score})`;
-  if (teamBTabScoreEl) teamBTabScoreEl.textContent = `(${game.teams.B.score})`;
+
+  if (matchScoreANameEl) matchScoreANameEl.textContent = game.teams.A.name;
+  if (matchScoreBNameEl) matchScoreBNameEl.textContent = game.teams.B.name;
+  if (matchScoreTargetEl) matchScoreTargetEl.textContent = String(game.target);
+  if (matchScoreTargetBEl) matchScoreTargetBEl.textContent = String(game.target);
+
+  if (matchScoreAValueEl) {
+    if (game.teams.A.score !== prevA) {
+      countUp(matchScoreAValueEl, prevA, game.teams.A.score, 380, () => {
+        matchScoreAValueEl.classList.remove("match-score-value--highlight");
+        if (matchScoreTeamAEl) matchScoreTeamAEl.classList.remove("match-score-team--highlight");
+      });
+      matchScoreAValueEl.classList.add("match-score-value--highlight");
+      if (matchScoreTeamAEl) matchScoreTeamAEl.classList.add("match-score-team--highlight");
+    } else {
+      matchScoreAValueEl.textContent = String(game.teams.A.score);
+    }
+  }
+  if (matchScoreBValueEl) {
+    if (game.teams.B.score !== prevB) {
+      countUp(matchScoreBValueEl, prevB, game.teams.B.score, 380, () => {
+        matchScoreBValueEl.classList.remove("match-score-value--highlight");
+        if (matchScoreTeamBEl) matchScoreTeamBEl.classList.remove("match-score-team--highlight");
+      });
+      matchScoreBValueEl.classList.add("match-score-value--highlight");
+      if (matchScoreTeamBEl) matchScoreTeamBEl.classList.add("match-score-team--highlight");
+    } else {
+      matchScoreBValueEl.textContent = String(game.teams.B.score);
+    }
+  }
+  prevDisplayScoreA = game.teams.A.score;
+  prevDisplayScoreB = game.teams.B.score;
+
   if (targetChipEl) {
     const label =
       game.gameType === "500-bonuses"
@@ -567,6 +634,8 @@ function newGame() {
     ? prevGameType
     : "500-bonuses";
   game.target = targetFromGameType(game.gameType);
+  prevDisplayScoreA = 0;
+  prevDisplayScoreB = 0;
   saveGame();
   clearLeftovers();
   render();

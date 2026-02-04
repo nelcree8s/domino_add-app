@@ -20,7 +20,7 @@ A draft so players can understand the rules and how bonuses work. Based on your 
 - When a player **gets rid of all their pieces**, their team wins the hand.
 - Add up the **dots on all pieces not played**.
 - That total is added to the **winning team’s score**.
-- *(In 500-point games, some play that you count **all** players’ remaining pieces for the winner; the app has an option for this.)*
+- _(In 500-point games, some play that you count **all** players’ remaining pieces for the winner; the app has an option for this.)_
 
 **In the app**: Tap the dot buttons to add the **losing team’s** leftover pips, choose which team **won**, then tap **Apply score**.
 
@@ -71,7 +71,7 @@ A draft so players can understand the rules and how bonuses work. Based on your 
 - **When**: The board is **locked** — no one can play (all playable numbers are blocked).
 - **How to resolve**: The player who locked it shows their hand to the player to their **right** (“tranquar con el de abajo”). Whoever has **fewer pips** in hand wins; that team gets the **sum of the opponents’ leftover pips**.
 - **Tie**: If the two compared hands are tied, the **player who started the hand** (placed the first domino) wins for their team.
-- *(Some play “tranquar con todo el mundo” and compare with everyone; the lowest hand wins.)*
+- _(Some play “tranquar con todo el mundo” and compare with everyone; the lowest hand wins.)_
 
 **In the app**: For now the app treats this like a normal hand win: add the losers’ pips and award to the winning team. A dedicated “Tranque” type could be added later if you want it called out separately.
 
@@ -88,7 +88,7 @@ A draft so players can understand the rules and how bonuses work. Based on your 
   - Round 3: **+50**
   - Round 4: **+25**
   - Round 5+: no extra round bonus  
-  The round bonus is **added on top of** leftover pips and any Pase primera mano / Pase corrido / Capicúa / Chuchazo for that hand.
+    The round bonus is **added on top of** leftover pips and any Pase primera mano / Pase corrido / Capicúa / Chuchazo for that hand.
 
 ---
 
@@ -121,7 +121,6 @@ Options for where and how to show this:
 ---
 
 ## 6. Open points
-
 
 - **Tranque**: Keep as “award to winner like a normal hand” or add a distinct “Tranque” hand type and UI?
 - **“Count all hands in 500”**: Keep as an option and explain it in rules (“In 500, some count every hand; others only the winner’s opponents.”)?

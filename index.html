@@ -65,6 +65,16 @@
             <div class="score-card__total" id="scoreCardTotal">0</div>
             <div class="score-card__unit">points</div>
           </div>
+          <div class="score-card__divider"></div>
+          <div class="match-score-display">
+            <span class="match-score-team" id="matchScoreTeamA">
+              <span class="match-score-name" id="matchScoreAName">Team A</span>: <span class="match-score-value" id="matchScoreAValue">0</span> / <span id="matchScoreTarget">250</span>
+            </span>
+            <span class="match-score-sep" aria-hidden="true"> · </span>
+            <span class="match-score-team" id="matchScoreTeamB">
+              <span class="match-score-name" id="matchScoreBName">Team B</span>: <span class="match-score-value" id="matchScoreBValue">0</span> / <span id="matchScoreTargetB">250</span>
+            </span>
+          </div>
         </div>
 
         <div class="team-tabs" role="tablist" aria-label="Who won">
@@ -75,7 +85,6 @@
             aria-selected="true"
           >
             <span class="team-tab__name" id="teamANameTab" data-i18n="teamA">Team A</span>
-            <span class="team-tab__score" id="teamATabScore">0</span>
           </button>
           <button
             type="button"
@@ -84,7 +93,6 @@
             aria-selected="false"
           >
             <span class="team-tab__name" id="teamBNameTab" data-i18n="teamB">Team B</span>
-            <span class="team-tab__score" id="teamBTabScore">0</span>
           </button>
         </div>
 
