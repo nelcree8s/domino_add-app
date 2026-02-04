@@ -45,36 +45,60 @@ const gameOverSubtitle = $("gameOverSubtitle");
 const btnStartNew = $("btnStartNew");
 const optionsOverlay = $("optionsOverlay");
 const btnCloseOptions = $("btnCloseOptions");
-const optTarget = $("optTarget");
+const optGameType = $("optGameType");
 const optOpeningPass = $("optOpeningPass");
 const optCountAll500 = $("optCountAll500");
 const btnApplyOptions = $("btnApplyOptions");
 
 // -------------------- State / persistence --------------------
-const STORAGE_KEY = "domino_score_match_v1";
+const STORAGE_KEY = "domino_score_match_v2";
+
+/** @type {'200'|'250'|'500'|'500-bonuses'} */
+const GAME_TYPES = ["200", "250", "500", "500-bonuses"];
+
+/** Round bonuses for 500-bonuses: 1st=100, 2nd=75, 3rd=50, 4th=25, 5th+=0 */
+function roundBonus(roundNum) {
+  if (typeof roundNum !== "number" || roundNum < 1) return 0;
+  const bonuses = [100, 75, 50, 25];
+  return roundNum <= 4 ? bonuses[roundNum - 1] : 0;
+}
 
 function defaultGame() {
+  const gameType = "500-bonuses";
   return {
-    target: 250,
+    gameType,
+    target: targetFromGameType(gameType),
+    roundNumber: 1,
     teams: {
       A: { id: "A", name: "Team A", score: 0 },
       B: { id: "B", name: "Team B", score: 0 },
     },
     rules: {
       openingPassEnabled: true,
-      // Dominican variant: in some 500 matches, all hands are counted on a win.
       countAllHandsIn500: false,
     },
     history: [],
   };
 }
 
+function targetFromGameType(gt) {
+  return gt === "500-bonuses" ? 500 : Number(gt);
+}
+
 function loadGame() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    let raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) raw = localStorage.getItem("domino_score_match_v1");
     if (!raw) return null;
     const g = JSON.parse(raw);
     if (!g?.teams?.A || !g?.teams?.B) return null;
+    // Migrate v1: target → gameType, add roundNumber
+    if (!g.gameType) {
+      g.gameType = String(g.target ?? 250);
+      if (!GAME_TYPES.includes(g.gameType)) g.gameType = "500-bonuses";
+    }
+    if (typeof g.roundNumber !== "number") g.roundNumber = 1;
+    g.target = targetFromGameType(g.gameType);
     return g;
   } catch {
     return null;
@@ -180,7 +204,13 @@ function render() {
   if (teamBNameTabEl) teamBNameTabEl.textContent = game.teams.B.name;
   if (teamATabScoreEl) teamATabScoreEl.textContent = `(${game.teams.A.score})`;
   if (teamBTabScoreEl) teamBTabScoreEl.textContent = `(${game.teams.B.score})`;
-  if (targetChipEl) targetChipEl.textContent = `Target: ${game.target}`;
+  if (targetChipEl) {
+    const label =
+      game.gameType === "500-bonuses"
+        ? "500 (bonuses)"
+        : `Target: ${game.target}`;
+    targetChipEl.textContent = label;
+  }
   if (scoreCardTotalEl) scoreCardTotalEl.textContent = String(total);
   if (scoreCardTotalWrapEl)
     scoreCardTotalWrapEl.classList.toggle("has-values", leftovers.length > 0);
@@ -259,14 +289,26 @@ function applyScore() {
   const awardTeam = winner;
   const base = pipSum(leftovers);
   const { bonus, parts } = computeBonuses();
-  const delta = base + bonus;
+  let delta = base + bonus;
+
+  // 500 with bonuses: add round bonus automatically
+  const rndBonus =
+    game.gameType === "500-bonuses" ? roundBonus(game.roundNumber) : 0;
+  if (rndBonus > 0) {
+    delta += rndBonus;
+    parts.push(`Round bonus +${rndBonus}`);
+  }
 
   if (delta <= 0) {
     alert("Add leftover pips and/or check bonuses first.");
     return;
   }
 
-  const confirmMsg = `Award ${delta} to ${game.teams[awardTeam].name}?\n\nLeftovers: ${base}\nBonuses: ${bonus}\nTotal: ${delta}`;
+  const confirmMsg = `Award ${delta} to ${
+    game.teams[awardTeam].name
+  }?\n\nLeftovers: ${base}\nBonuses: ${bonus}${
+    rndBonus ? `\nRound bonus: +${rndBonus}` : ""
+  }\nTotal: ${delta}`;
   if (!confirm(confirmMsg)) return;
 
   game.teams[awardTeam].score += delta;
@@ -278,6 +320,7 @@ function applyScore() {
     delta,
     detail: [detail, ...parts].filter(Boolean).join(" • "),
   });
+  if (game.gameType === "500-bonuses") game.roundNumber++;
   saveGame();
 
   // Reset hand inputs
@@ -297,17 +340,13 @@ function newGame() {
   const bName = (
     prompt("Team B name", game.teams.B.name) || game.teams.B.name
   ).trim();
-  const targetStr = (
-    prompt("Target score (200, 250, 500)", String(game.target)) ||
-    String(game.target)
-  ).trim();
-  const targetNum = Number(targetStr);
-  const target = [200, 250, 500].includes(targetNum) ? targetNum : game.target;
+  const prevGameType = game.gameType;
 
   game = defaultGame();
   game.teams.A.name = aName || "Team A";
   game.teams.B.name = bName || "Team B";
-  game.target = target;
+  game.gameType = GAME_TYPES.includes(prevGameType) ? prevGameType : "500-bonuses";
+  game.target = targetFromGameType(game.gameType);
   saveGame();
   clearLeftovers();
   render();
@@ -383,27 +422,38 @@ function wireUI() {
     });
 
   const openOptions = () => {
-    if (optTarget) optTarget.value = String(game.target);
+    if (optGameType) optGameType.value = game.gameType || "500-bonuses";
     if (optOpeningPass) optOpeningPass.checked = game.rules.openingPassEnabled;
     if (optCountAll500) optCountAll500.checked = game.rules.countAllHandsIn500;
     optionsOverlay?.classList.remove("hidden");
     if (typeof feather !== "undefined") feather.replace();
   };
-  const closeOptions = () => optionsOverlay?.classList.add("hidden");
 
   const applyOptions = () => {
-    const targetNum = Number(optTarget?.value);
-    if ([200, 250, 500].includes(targetNum)) game.target = targetNum;
+    const gt = optGameType?.value;
+    if (GAME_TYPES.includes(gt)) {
+      const was500Bonus = game.gameType === "500-bonuses";
+      game.gameType = gt;
+      game.target = targetFromGameType(gt);
+      if (gt === "500-bonuses" && !was500Bonus) game.roundNumber = 1; // fresh start when switching to this mode
+    }
     if (optOpeningPass) game.rules.openingPassEnabled = optOpeningPass.checked;
     if (optCountAll500) game.rules.countAllHandsIn500 = optCountAll500.checked;
     saveGame();
-    closeOptions();
     render();
+  };
+
+  const closeOptions = () => {
+    applyOptions(); // save options when closing
+    optionsOverlay?.classList.add("hidden");
   };
 
   if (btnSettingsTop) btnSettingsTop.addEventListener("click", openOptions);
   if (btnCloseOptions) btnCloseOptions.addEventListener("click", closeOptions);
-  if (btnApplyOptions) btnApplyOptions.addEventListener("click", applyOptions);
+  if (btnApplyOptions) btnApplyOptions.addEventListener("click", () => {
+    applyOptions();
+    optionsOverlay?.classList.add("hidden");
+  });
 }
 
 // -------------------- Init --------------------
