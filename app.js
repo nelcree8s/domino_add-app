@@ -21,6 +21,9 @@ const teamBNameTabEl = $("teamBNameTab");
 const teamATabScoreEl = $("teamATabScore");
 const teamBTabScoreEl = $("teamBTabScore");
 const btnSettingsTop = $("btnSettingsTop");
+const btnRulesTop = $("btnRulesTop");
+const rulesOverlay = $("rulesOverlay");
+const btnCloseRules = $("btnCloseRules");
 
 // Navigation
 const btnMenu = $("btnMenu");
@@ -35,6 +38,7 @@ const btnWinnerB = $("btnWinnerB");
 const bonusOpeningPassEl = $("bonusOpeningPass");
 const bonusPaseCorridoEl = $("bonusPaseCorrido");
 const bonusCapicuaEl = $("bonusCapicua");
+const bonusChuchazoEl = $("bonusChuchazo");
 const btnClearBuckets = $("btnClearBuckets");
 const btnApplyScore = $("btnApplyScore");
 const historyListEl = $("historyList");
@@ -48,10 +52,13 @@ const btnCloseOptions = $("btnCloseOptions");
 const optGameType = $("optGameType");
 const optOpeningPass = $("optOpeningPass");
 const optCountAll500 = $("optCountAll500");
+const optPaseCorridoPoints = $("optPaseCorridoPoints");
+const optCapicuaPoints = $("optCapicuaPoints");
+const optChuchazoPoints = $("optChuchazoPoints");
 const btnApplyOptions = $("btnApplyOptions");
 
 // -------------------- State / persistence --------------------
-const STORAGE_KEY = "domino_score_match_v2";
+const STORAGE_KEY = "domino_score_match_v3";
 
 /** @type {'200'|'250'|'500'|'500-bonuses'} */
 const GAME_TYPES = ["200", "250", "500", "500-bonuses"];
@@ -76,6 +83,9 @@ function defaultGame() {
     rules: {
       openingPassEnabled: true,
       countAllHandsIn500: false,
+      paseCorridoPoints: 25,
+      capicuaPoints: 50,
+      chuchazoPoints: 50,
     },
     history: [],
   };
@@ -88,6 +98,7 @@ function targetFromGameType(gt) {
 function loadGame() {
   try {
     let raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) raw = localStorage.getItem("domino_score_match_v2");
     if (!raw) raw = localStorage.getItem("domino_score_match_v1");
     if (!raw) return null;
     const g = JSON.parse(raw);
@@ -99,6 +110,10 @@ function loadGame() {
     }
     if (typeof g.roundNumber !== "number") g.roundNumber = 1;
     g.target = targetFromGameType(g.gameType);
+    if (!g.rules) g.rules = {};
+    if (typeof g.rules.paseCorridoPoints !== "number") g.rules.paseCorridoPoints = 25;
+    if (typeof g.rules.capicuaPoints !== "number") g.rules.capicuaPoints = 50;
+    if (typeof g.rules.chuchazoPoints !== "number") g.rules.chuchazoPoints = 50;
     return g;
   } catch {
     return null;
@@ -172,13 +187,20 @@ function computeBonuses() {
     bonus += pts;
     parts.push(`Opening pass +${pts}`);
   }
+  const pasePts = game.rules.paseCorridoPoints ?? 25;
   if (bonusPaseCorridoEl?.checked) {
-    bonus += 25;
-    parts.push("Pase corrido +25");
+    bonus += pasePts;
+    parts.push(`Pase corrido +${pasePts}`);
   }
+  const capicuaPts = game.rules.capicuaPoints ?? 50;
   if (bonusCapicuaEl?.checked) {
-    bonus += 25;
-    parts.push("Capicúa +25");
+    bonus += capicuaPts;
+    parts.push(`Capicúa +${capicuaPts}`);
+  }
+  const chuchazoPts = game.rules.chuchazoPoints ?? 50;
+  if (bonusChuchazoEl?.checked) {
+    bonus += chuchazoPts;
+    parts.push(`Chuchazo +${chuchazoPts}`);
   }
   return { bonus, parts };
 }
@@ -325,9 +347,10 @@ function applyScore() {
 
   // Reset hand inputs
   clearLeftovers();
-  bonusOpeningPassEl.checked = false;
-  bonusPaseCorridoEl.checked = false;
-  bonusCapicuaEl.checked = false;
+  bonusOpeningPassEl && (bonusOpeningPassEl.checked = false);
+  bonusPaseCorridoEl && (bonusPaseCorridoEl.checked = false);
+  bonusCapicuaEl && (bonusCapicuaEl.checked = false);
+  bonusChuchazoEl && (bonusChuchazoEl.checked = false);
 
   render();
 }
@@ -425,6 +448,9 @@ function wireUI() {
     if (optGameType) optGameType.value = game.gameType || "500-bonuses";
     if (optOpeningPass) optOpeningPass.checked = game.rules.openingPassEnabled;
     if (optCountAll500) optCountAll500.checked = game.rules.countAllHandsIn500;
+    if (optPaseCorridoPoints) optPaseCorridoPoints.value = String(game.rules.paseCorridoPoints ?? 25);
+    if (optCapicuaPoints) optCapicuaPoints.value = String(game.rules.capicuaPoints ?? 50);
+    if (optChuchazoPoints) optChuchazoPoints.value = String(game.rules.chuchazoPoints ?? 50);
     optionsOverlay?.classList.remove("hidden");
     if (typeof feather !== "undefined") feather.replace();
   };
@@ -435,10 +461,16 @@ function wireUI() {
       const was500Bonus = game.gameType === "500-bonuses";
       game.gameType = gt;
       game.target = targetFromGameType(gt);
-      if (gt === "500-bonuses" && !was500Bonus) game.roundNumber = 1; // fresh start when switching to this mode
+      if (gt === "500-bonuses" && !was500Bonus) game.roundNumber = 1;
     }
     if (optOpeningPass) game.rules.openingPassEnabled = optOpeningPass.checked;
     if (optCountAll500) game.rules.countAllHandsIn500 = optCountAll500.checked;
+    const pase = parseInt(optPaseCorridoPoints?.value, 10);
+    if (!isNaN(pase) && pase >= 0) game.rules.paseCorridoPoints = pase;
+    const capicua = parseInt(optCapicuaPoints?.value, 10);
+    if (!isNaN(capicua) && capicua >= 0) game.rules.capicuaPoints = capicua;
+    const chuchazo = parseInt(optChuchazoPoints?.value, 10);
+    if (!isNaN(chuchazo) && chuchazo >= 0) game.rules.chuchazoPoints = chuchazo;
     saveGame();
     render();
   };
@@ -453,6 +485,56 @@ function wireUI() {
   if (btnApplyOptions) btnApplyOptions.addEventListener("click", () => {
     applyOptions();
     optionsOverlay?.classList.add("hidden");
+  });
+
+  const openRules = () => {
+    rulesOverlay?.classList.remove("hidden");
+    if (typeof feather !== "undefined") feather.replace();
+  };
+  const closeRules = () => rulesOverlay?.classList.add("hidden");
+  if (btnRulesTop) btnRulesTop.addEventListener("click", openRules);
+  if (btnCloseRules) btnCloseRules.addEventListener("click", closeRules);
+
+  // Tooltip handling
+  document.querySelectorAll(".tooltip-trigger").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const key = btn.dataset.tooltip;
+      let text = "";
+      if (key === "opening-pass") {
+        text = `First play of the hand; if the next player cannot play, the first player's team gets ${openingPassPoints()} pts. Nullified if the next player after that also cannot play.`;
+      } else if (key === "pase-corrido") {
+        text = `A player plays and all three opponents cannot play. That player's team gets ${game.rules.paseCorridoPoints ?? 25} pts (configurable in Options). That player then plays again.`;
+      } else if (key === "capicua") {
+        text = `The last piece matches the number at the opposite end of the chain. Worth ${game.rules.capicuaPoints ?? 50} pts (configurable in Options). Nullified if matched with a blank or double.`;
+      } else if (key === "chuchazo") {
+        text = `The winning piece is the double-blank (0–0), "la Chucha!" Worth ${game.rules.chuchazoPoints ?? 50} pts (configurable in Options).`;
+      }
+      if (!text) return;
+      const tooltip = document.createElement("div");
+      tooltip.className = "tooltip-popover";
+      tooltip.textContent = text;
+      document.body.appendChild(tooltip);
+      const rect = btn.getBoundingClientRect();
+      const tooltipRect = tooltip.getBoundingClientRect();
+      let left = rect.left;
+      let top = rect.bottom + 8;
+      // Keep tooltip on screen
+      if (left + tooltipRect.width > window.innerWidth - 16) {
+        left = window.innerWidth - tooltipRect.width - 16;
+      }
+      if (left < 16) left = 16;
+      if (top + tooltipRect.height > window.innerHeight - 16) {
+        top = rect.top - tooltipRect.height - 8;
+      }
+      tooltip.style.left = `${left}px`;
+      tooltip.style.top = `${top}px`;
+      const closeTooltip = () => {
+        tooltip.remove();
+        document.removeEventListener("click", closeTooltip);
+      };
+      setTimeout(() => document.addEventListener("click", closeTooltip), 100);
+    });
   });
 }
 

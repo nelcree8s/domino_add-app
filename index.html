@@ -36,14 +36,24 @@
               <i data-feather="clock"></i>
             </button>
             <span id="targetChip" class="chip chip--light">Target: 250</span>
-            <button
-              type="button"
-              id="btnSettingsTop"
-              class="icon-btn"
-              aria-label="Settings"
-            >
-              <i data-feather="settings"></i>
-            </button>
+            <div style="display: flex; gap: 0.5rem;">
+              <button
+                type="button"
+                id="btnRulesTop"
+                class="icon-btn"
+                aria-label="Rules"
+              >
+                <i data-feather="help-circle"></i>
+              </button>
+              <button
+                type="button"
+                id="btnSettingsTop"
+                class="icon-btn"
+                aria-label="Settings"
+              >
+                <i data-feather="settings"></i>
+              </button>
+            </div>
           </div>
           <div class="score-card__math" id="scoreCardMath">
             Tap dots to add points
@@ -85,15 +95,16 @@
 
         <div class="bonus-row bonus-row--main">
           <label class="check"
-            ><input type="checkbox" id="bonusOpeningPass" /> Opening pass bonus
-            (10 / 25)</label
+            ><input type="checkbox" id="bonusOpeningPass" /> Pase primera mano (opening pass)<button type="button" class="tooltip-trigger" data-tooltip="opening-pass" aria-label="What is this?">?</button></label
           >
           <label class="check"
-            ><input type="checkbox" id="bonusPaseCorrido" /> Pase corrido
-            (+25)</label
+            ><input type="checkbox" id="bonusPaseCorrido" /> Pase corrido (skipping everyone)<button type="button" class="tooltip-trigger" data-tooltip="pase-corrido" aria-label="What is this?">?</button></label
           >
           <label class="check"
-            ><input type="checkbox" id="bonusCapicua" /> Capicúa (+25)</label
+            ><input type="checkbox" id="bonusCapicua" /> Capicúa (matching ends)<button type="button" class="tooltip-trigger" data-tooltip="capicua" aria-label="What is this?">?</button></label
+          >
+          <label class="check"
+            ><input type="checkbox" id="bonusChuchazo" /> Chuchazo (double-blank)<button type="button" class="tooltip-trigger" data-tooltip="chuchazo" aria-label="What is this?">?</button></label
           >
         </div>
 
@@ -131,9 +142,9 @@
               type="button"
               id="btnCloseOptions"
               class="close-btn"
-              aria-label="Done"
+              aria-label="Close"
             >
-              Done
+              ×
             </button>
           </div>
 
@@ -164,10 +175,77 @@
             </label>
           </div>
 
+          <div class="options-section">
+            <h3 class="options-section-title">Bonus points</h3>
+            <label class="options-field">
+              <span class="options-label">Pase corrido (pts)</span>
+              <input type="number" id="optPaseCorridoPoints" class="select" min="0" value="25" />
+            </label>
+            <label class="options-field">
+              <span class="options-label">Capicúa (pts)</span>
+              <input type="number" id="optCapicuaPoints" class="select" min="0" value="50" />
+            </label>
+            <label class="options-field">
+              <span class="options-label">Chuchazo / double-blank (pts)</span>
+              <input type="number" id="optChuchazoPoints" class="select" min="0" value="50" />
+            </label>
+          </div>
+
           <div class="options-actions">
             <button type="button" id="btnApplyOptions" class="btn btn-primary">
               Apply
             </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rules overlay -->
+      <div id="rulesOverlay" class="options-overlay hidden">
+        <div class="options-panel">
+          <div class="options-header">
+            <h2>Rules</h2>
+            <button
+              type="button"
+              id="btnCloseRules"
+              class="close-btn"
+              aria-label="Close"
+            >
+              ×
+            </button>
+          </div>
+
+          <div class="rules-content">
+            <h3>How you score points</h3>
+            <div class="rule-item">
+              <h4>1. Winning the hand (leftover pieces)</h4>
+              <p>When a player gets rid of all their pieces, their team wins. Add up the dots on all pieces not played. That total goes to the winning team's score.</p>
+            </div>
+            <div class="rule-item">
+              <h4>2. Pase primera mano (opening pass)</h4>
+              <p>Only on the very first play of the hand. If the next player cannot play, the first player's team gets <strong>10</strong> (200/250) or <strong>25</strong> (500). Nullified if the next player after that also cannot play.</p>
+            </div>
+            <div class="rule-item">
+              <h4>3. Pase corrido (skipping everyone)</h4>
+              <p>A player plays and all three opponents cannot play. That player's team gets <strong>25</strong> pts (default; configurable). That player then plays again.</p>
+            </div>
+            <div class="rule-item">
+              <h4>4. Capicúa (matching ends)</h4>
+              <p>The last piece matches the number at the opposite end of the chain. Worth <strong>50</strong> pts (default; configurable). Nullified if matched with a blank or double.</p>
+            </div>
+            <div class="rule-item">
+              <h4>5. Chuchazo (double-blank)</h4>
+              <p>The winning piece is the double-blank (0–0), "la Chucha!" Worth <strong>50</strong> pts (default; configurable).</p>
+            </div>
+            <div class="rule-item">
+              <h4>6. Tranque (lock)</h4>
+              <p>No one can play. Compare hands; lowest total wins and gets opponents' leftover points. Tie goes to the player who started the hand.</p>
+            </div>
+
+            <h3 style="margin-top: 2rem;">Game types</h3>
+            <div class="rule-item">
+              <p><strong>200, 250, 500:</strong> First to reach target score.</p>
+              <p><strong>500 with bonuses:</strong> Same as 500, plus round bonuses: 1st hand +100, 2nd +75, 3rd +50, 4th +25.</p>
+            </div>
           </div>
         </div>
       </div>
