@@ -111,7 +111,8 @@ function loadGame() {
     if (typeof g.roundNumber !== "number") g.roundNumber = 1;
     g.target = targetFromGameType(g.gameType);
     if (!g.rules) g.rules = {};
-    if (typeof g.rules.paseCorridoPoints !== "number") g.rules.paseCorridoPoints = 25;
+    if (typeof g.rules.paseCorridoPoints !== "number")
+      g.rules.paseCorridoPoints = 25;
     if (typeof g.rules.capicuaPoints !== "number") g.rules.capicuaPoints = 50;
     if (typeof g.rules.chuchazoPoints !== "number") g.rules.chuchazoPoints = 50;
     return g;
@@ -250,8 +251,8 @@ function render() {
           (v) =>
             `<span class="score-card__chip pip-${v}">${renderDots(
               v,
-              `pip-${v}`
-            )}</span>`
+              `pip-${v}`,
+            )}</span>`,
         )
         .join('<span class="score-card__plus">+</span>');
       const prefix = remaining
@@ -298,8 +299,8 @@ function render() {
       li.innerHTML = `
         <div class="meta">${when} • ${h.type.toUpperCase()} • ${teamName}</div>
         <div class="line"><div>${h.detail}</div><div class="delta">+${
-        h.delta
-      }</div></div>
+          h.delta
+        }</div></div>
       `;
       historyListEl.appendChild(li);
     });
@@ -368,7 +369,9 @@ function newGame() {
   game = defaultGame();
   game.teams.A.name = aName || "Team A";
   game.teams.B.name = bName || "Team B";
-  game.gameType = GAME_TYPES.includes(prevGameType) ? prevGameType : "500-bonuses";
+  game.gameType = GAME_TYPES.includes(prevGameType)
+    ? prevGameType
+    : "500-bonuses";
   game.target = targetFromGameType(game.gameType);
   saveGame();
   clearLeftovers();
@@ -448,9 +451,12 @@ function wireUI() {
     if (optGameType) optGameType.value = game.gameType || "500-bonuses";
     if (optOpeningPass) optOpeningPass.checked = game.rules.openingPassEnabled;
     if (optCountAll500) optCountAll500.checked = game.rules.countAllHandsIn500;
-    if (optPaseCorridoPoints) optPaseCorridoPoints.value = String(game.rules.paseCorridoPoints ?? 25);
-    if (optCapicuaPoints) optCapicuaPoints.value = String(game.rules.capicuaPoints ?? 50);
-    if (optChuchazoPoints) optChuchazoPoints.value = String(game.rules.chuchazoPoints ?? 50);
+    if (optPaseCorridoPoints)
+      optPaseCorridoPoints.value = String(game.rules.paseCorridoPoints ?? 25);
+    if (optCapicuaPoints)
+      optCapicuaPoints.value = String(game.rules.capicuaPoints ?? 50);
+    if (optChuchazoPoints)
+      optChuchazoPoints.value = String(game.rules.chuchazoPoints ?? 50);
     optionsOverlay?.classList.remove("hidden");
     if (typeof feather !== "undefined") feather.replace();
   };
@@ -482,10 +488,11 @@ function wireUI() {
 
   if (btnSettingsTop) btnSettingsTop.addEventListener("click", openOptions);
   if (btnCloseOptions) btnCloseOptions.addEventListener("click", closeOptions);
-  if (btnApplyOptions) btnApplyOptions.addEventListener("click", () => {
-    applyOptions();
-    optionsOverlay?.classList.add("hidden");
-  });
+  if (btnApplyOptions)
+    btnApplyOptions.addEventListener("click", () => {
+      applyOptions();
+      optionsOverlay?.classList.add("hidden");
+    });
 
   const openRules = () => {
     rulesOverlay?.classList.remove("hidden");
