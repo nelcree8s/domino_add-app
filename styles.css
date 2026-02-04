@@ -704,7 +704,7 @@ body {
 .options-panel {
   background: var(--surface);
   width: 100%;
-  max-width: 420px;
+  max-width: 600px;
   min-height: 100%;
   padding: 1rem 1.25rem 2rem;
   box-shadow: 0 0 24px rgba(0, 0, 0, 0.15);
