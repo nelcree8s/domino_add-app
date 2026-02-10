@@ -410,6 +410,7 @@ body {
   justify-content: center;
   gap: 0.5rem;
   padding: 0.75rem 0;
+  touch-action: manipulation;
 }
 .pip-btn {
   width: 64px;
@@ -424,6 +425,7 @@ body {
   transition: all 0.15s;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 18px 30px -20px rgba(63, 72, 119, 0.45);
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 .pip-btn .dots {
   width: 38px;
@@ -1097,6 +1099,23 @@ body {
 .history-item .delta {
   font-weight: 900;
   color: var(--orange);
+}
+.history-item-move {
+  margin-top: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #5f7dff;
+  background: transparent;
+  border: 1px solid rgba(95, 125, 255, 0.4);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.history-item-move:hover,
+.history-item-move:active {
+  background: rgba(95, 125, 255, 0.1);
+  color: #4c6bf5;
 }
 
 @media (min-width: 520px) {

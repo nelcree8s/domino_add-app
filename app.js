@@ -85,6 +85,7 @@ const STRINGS = {
     roundBonusLine: "\nRound bonus: +{pts}",
     leftOverLabel: "Leftovers: {base}",
     matchScore: "Match score",
+    moveToTeam: "Move to {name}",
   },
   es: {
     title: "Domino Puntos",
@@ -162,6 +163,7 @@ const STRINGS = {
     roundBonusLine: "\nPremio de ronda: +{pts}",
     leftOverLabel: "Fichas: {base}",
     matchScore: "Puntaje",
+    moveToTeam: "Pasar a {name}",
   },
 };
 
@@ -550,20 +552,33 @@ function render() {
   if (historyListEl) {
     historyListEl.innerHTML = "";
     const history = game.history.slice().reverse();
-    history.forEach((h) => {
+    history.forEach((h, i) => {
       const li = document.createElement("li");
       li.className = "history-item";
+      const realIndex = game.history.length - 1 - i;
       const when = new Date(h.ts).toLocaleString();
       const teamName = game.teams[h.awardTeam].name;
+      const otherTeam = h.awardTeam === "A" ? "B" : "A";
+      const otherTeamName = game.teams[otherTeam].name;
       li.innerHTML = `
         <div class="meta">${when} • ${h.type.toUpperCase()} • ${teamName}</div>
-        <div class="line"><div>${h.detail}</div><div class="delta">+${
-          h.delta
-        }</div></div>
+        <div class="line"><div>${h.detail}</div><div class="delta">+${h.delta}</div></div>
+        <button type="button" class="history-item-move" data-history-index="${realIndex}" aria-label="${t("moveToTeam", { name: otherTeamName })}">${t("moveToTeam", { name: otherTeamName })}</button>
       `;
       historyListEl.appendChild(li);
     });
   }
+}
+
+function moveScoreToTeam(historyIndex) {
+  const h = game.history[historyIndex];
+  if (!h) return;
+  const otherTeam = h.awardTeam === "A" ? "B" : "A";
+  game.teams[h.awardTeam].score -= h.delta;
+  game.teams[otherTeam].score += h.delta;
+  h.awardTeam = otherTeam;
+  saveGame();
+  render();
 }
 
 // -------------------- Hand scoring --------------------
@@ -573,12 +588,17 @@ function applyScore() {
   const { bonus, parts } = computeBonuses();
   let delta = base + bonus;
 
-  // 500 with bonuses: add round bonus automatically
-  const rndBonus =
-    game.gameType === "500-bonuses" ? roundBonus(game.roundNumber) : 0;
-  if (rndBonus > 0) {
-    delta += rndBonus;
-    parts.push(`Round bonus +${rndBonus}`);
+  // Only opening pass and pase corrido can happen mid-hand; pips/capicúa/chuchazo = hand over
+  const isEndOfHand =
+    base > 0 || bonusCapicuaEl?.checked || bonusChuchazoEl?.checked;
+
+  let rndBonus = 0;
+  if (isEndOfHand && game.gameType === "500-bonuses") {
+    rndBonus = roundBonus(game.roundNumber);
+    if (rndBonus > 0) {
+      delta += rndBonus;
+      parts.push(`Round bonus +${rndBonus}`);
+    }
   }
 
   if (delta <= 0) {
@@ -599,12 +619,12 @@ function applyScore() {
   const detail = base > 0 ? t("leftOverLabel", { base }) : "";
   game.history.push({
     ts: Date.now(),
-    type: "win",
+    type: isEndOfHand ? "win" : "mid",
     awardTeam,
     delta,
     detail: [detail, ...parts].filter(Boolean).join(" • "),
   });
-  if (game.gameType === "500-bonuses") game.roundNumber++;
+  if (isEndOfHand && game.gameType === "500-bonuses") game.roundNumber++;
   saveGame();
 
   // Reset hand inputs
@@ -701,6 +721,14 @@ function wireUI() {
   if (btnNewGame)
     btnNewGame.addEventListener("click", () => {
       if (confirm(t("confirmNewGame"))) newGame();
+    });
+
+  if (historyListEl)
+    historyListEl.addEventListener("click", (e) => {
+      const btn = e.target.closest(".history-item-move");
+      if (!btn) return;
+      const idx = parseInt(btn.dataset.historyIndex, 10);
+      if (!isNaN(idx)) moveScoreToTeam(idx);
     });
 
   if (btnStartNew)
