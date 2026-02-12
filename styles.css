@@ -1207,3 +1207,19 @@ body {
 .piece-list-full .remove-btn:active {
   background: rgba(229, 57, 53, 0.1);
 }
+
+/* Safe areas only when saved as app (standalone), not in browser */
+@media (display-mode: standalone) {
+  body {
+    padding-top: max(1rem, env(safe-area-inset-top, 0px));
+  }
+  .game-over-overlay {
+    padding: max(1.5rem, env(safe-area-inset-top, 0px)) 1.5rem max(1.5rem, env(safe-area-inset-bottom, 0px)) 1.5rem;
+  }
+  .options-panel {
+    padding: max(1rem, env(safe-area-inset-top, 0px)) 1.25rem max(2rem, env(safe-area-inset-bottom, 0px)) 1.25rem;
+  }
+  .list-view {
+    padding: max(1rem, env(safe-area-inset-top, 0px)) 1rem max(1rem, env(safe-area-inset-bottom, 0px)) 1rem;
+  }
+}
