@@ -6,6 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
+    <!-- Matches score card blue for standalone PWA status bar -->
     <meta name="theme-color" content="#5f7dff" />
     <link rel="manifest" href="manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -68,17 +69,19 @@
             <div class="score-card__unit">points</div>
           </div>
           <div class="score-card__divider"></div>
-          <div class="match-score-display">
-            <span class="match-score-team" id="matchScoreTeamA">
-              <span class="match-score-name" id="matchScoreAName">Team A</span>: <span class="match-score-value" id="matchScoreAValue">0</span> / <span id="matchScoreTarget">250</span>
-            </span>
-            <span class="match-score-sep" aria-hidden="true"> · </span>
-            <span class="match-score-team" id="matchScoreTeamB">
-              <span class="match-score-name" id="matchScoreBName">Team B</span>: <span class="match-score-value" id="matchScoreBValue">0</span> / <span id="matchScoreTargetB">250</span>
-            </span>
+          <div class="match-score-split">
+            <div class="match-score-block" id="matchScoreTeamA">
+              <span class="match-score-block__name" id="matchScoreAName">Team A</span>
+              <span class="match-score-block__value"><span class="match-score-value" id="matchScoreAValue">0</span> / <span id="matchScoreTarget">250</span></span>
+            </div>
+            <div class="match-score-block" id="matchScoreTeamB">
+              <span class="match-score-block__name" id="matchScoreBName">Team B</span>
+              <span class="match-score-block__value"><span class="match-score-value" id="matchScoreBValue">0</span> / <span id="matchScoreTargetB">250</span></span>
+            </div>
           </div>
         </div>
 
+        <p class="award-label" data-i18n="awardPointsTo">Award points to</p>
         <div class="team-tabs" role="tablist" aria-label="Who won">
           <button
             type="button"
@@ -104,53 +107,34 @@
       </div>
 
       <section class="manual-section" id="manualSection">
-        <div id="pipPicker" class="pip-picker"></div>
+        <div class="manual-section__content">
+          <div id="pipPicker" class="pip-picker"></div>
 
-        <div class="bonus-row bonus-row--main">
-          <label class="check"
-            ><input type="checkbox" id="bonusOpeningPass" /><span data-i18n="bonusOpeningPass">Pase primera mano (opening pass)</span><button
-              type="button"
-              class="tooltip-trigger"
-              data-tooltip="opening-pass"
-              data-i18n-aria="ariaWhatIsThis"
-              aria-label="What is this?"
-            >
-              ?
-            </button></label
-          >
-          <label class="check"
-            ><input type="checkbox" id="bonusPaseCorrido" /><span data-i18n="bonusPaseCorrido">Pase corrido (skipping everyone)</span><button
-              type="button"
-              class="tooltip-trigger"
-              data-tooltip="pase-corrido"
-              data-i18n-aria="ariaWhatIsThis"
-              aria-label="What is this?"
-            >
-              ?
-            </button></label
-          >
-          <label class="check"
-            ><input type="checkbox" id="bonusCapicua" /><span data-i18n="bonusCapicua">Capicúa (matching ends)</span><button
-              type="button"
-              class="tooltip-trigger"
-              data-tooltip="capicua"
-              data-i18n-aria="ariaWhatIsThis"
-              aria-label="What is this?"
-            >
-              ?
-            </button></label
-          >
-          <label class="check"
-            ><input type="checkbox" id="bonusChuchazo" /><span data-i18n="bonusChuchazo">Chuchazo (double-blank)</span><button
-              type="button"
-              class="tooltip-trigger"
-              data-tooltip="chuchazo"
-              data-i18n-aria="ariaWhatIsThis"
-              aria-label="What is this?"
-            >
-              ?
-            </button></label
-          >
+          <div class="bonus-row bonus-row--main">
+          <p class="bonus-row__title" data-i18n="bonuses">Bonuses</p>
+          <div class="bonus-chips">
+            <label class="bonus-chip">
+              <input type="checkbox" id="bonusOpeningPass" class="sr-only" />
+              <span class="bonus-chip__text"><span data-i18n="bonusChipPrimera">Primera mano</span> <span id="bonusOpeningPassValue">+10</span></span>
+              <button type="button" class="tooltip-trigger bonus-chip__help" data-tooltip="opening-pass" data-i18n-aria="ariaWhatIsThis" aria-label="What is this?">?</button>
+            </label>
+            <label class="bonus-chip">
+              <input type="checkbox" id="bonusPaseCorrido" class="sr-only" />
+              <span class="bonus-chip__text" data-i18n="bonusChipCorrido25">Corrido +25</span>
+              <button type="button" class="tooltip-trigger bonus-chip__help" data-tooltip="pase-corrido" data-i18n-aria="ariaWhatIsThis" aria-label="What is this?">?</button>
+            </label>
+            <label class="bonus-chip">
+              <input type="checkbox" id="bonusCapicua" class="sr-only" />
+              <span class="bonus-chip__text" data-i18n="bonusChipCapicua50">Capicúa +50</span>
+              <button type="button" class="tooltip-trigger bonus-chip__help" data-tooltip="capicua" data-i18n-aria="ariaWhatIsThis" aria-label="What is this?">?</button>
+            </label>
+            <label class="bonus-chip">
+              <input type="checkbox" id="bonusChuchazo" class="sr-only" />
+              <span class="bonus-chip__text" data-i18n="bonusChipChuchazo50">Chuchazo +50</span>
+              <button type="button" class="tooltip-trigger bonus-chip__help" data-tooltip="chuchazo" data-i18n-aria="ariaWhatIsThis" aria-label="What is this?">?</button>
+            </label>
+          </div>
+        </div>
         </div>
 
         <div class="actions-row actions-row--main">

@@ -21,10 +21,15 @@ const STRINGS = {
     tapDotsThenApply: "Tap dots to add points, then apply",
     teamA: "Team A",
     teamB: "Team B",
+    bonuses: "Bonuses",
     bonusOpeningPass: "Pase primera mano (opening pass)",
     bonusPaseCorrido: "Pase corrido (skipping everyone)",
     bonusCapicua: "Capicúa (matching ends)",
     bonusChuchazo: "Chuchazo (double-blank)",
+    bonusChipPrimera: "Primera mano",
+    bonusChipCorrido25: "Corrido +25",
+    bonusChipCapicua50: "Capicúa +50",
+    bonusChipChuchazo50: "Chuchazo +50",
     ariaWhatIsThis: "What is this?",
     clearHand: "Clear hand",
     applyScore: "Apply score",
@@ -53,6 +58,7 @@ const STRINGS = {
     apply: "Apply",
     addPip: "Add {v}",
     clearHandConfirm: "Clear hand?",
+    clearHandConfirmWithTotal: "Clear {total} points?",
     alertAddPips: "Add leftover pips and/or check bonuses first.",
     confirmAward: "Award {delta} to {name}?\n\nLeftovers: {base}\nBonuses: {bonus}{roundBonus}\nTotal: {delta}",
     confirmNewGame: "Start a new game? This will reset scores and history.",
@@ -86,6 +92,7 @@ const STRINGS = {
     leftOverLabel: "Leftovers: {base}",
     matchScore: "Match score",
     moveToTeam: "Move to {name}",
+    awardPointsTo: "Award points to",
   },
   es: {
     title: "Domino Puntos",
@@ -99,10 +106,15 @@ const STRINGS = {
     tapDotsThenApply: "Toca los puntos y luego aplica",
     teamA: "Equipo A",
     teamB: "Equipo B",
+    bonuses: "Premios",
     bonusOpeningPass: "Pase primera mano",
     bonusPaseCorrido: "Pase corrido",
     bonusCapicua: "Capicúa",
     bonusChuchazo: "Chuchazo (doble blanco)",
+    bonusChipPrimera: "Primera mano",
+    bonusChipCorrido25: "Corrido +25",
+    bonusChipCapicua50: "Capicúa +50",
+    bonusChipChuchazo50: "Chuchazo +50",
     ariaWhatIsThis: "¿Qué es esto?",
     clearHand: "Borrar mano",
     applyScore: "Aplicar puntos",
@@ -131,6 +143,7 @@ const STRINGS = {
     apply: "Aplicar",
     addPip: "Añadir {v}",
     clearHandConfirm: "¿Borrar mano?",
+    clearHandConfirmWithTotal: "¿Borrar {total} puntos?",
     alertAddPips: "Añade puntos de fichas y/o marca los premios primero.",
     confirmAward: "¿Dar {delta} a {name}?\n\nFichas: {base}\nPremios: {bonus}{roundBonus}\nTotal: {delta}",
     confirmNewGame: "¿Empezar una partida nueva? Se reiniciarán los puntajes y el historial.",
@@ -164,6 +177,7 @@ const STRINGS = {
     leftOverLabel: "Fichas: {base}",
     matchScore: "Puntaje",
     moveToTeam: "Pasar a {name}",
+    awardPointsTo: "Dar puntos a",
   },
 };
 
@@ -231,6 +245,7 @@ const btnWinnerB = $("btnWinnerB");
 
 // Bonus controls
 const bonusOpeningPassEl = $("bonusOpeningPass");
+const bonusOpeningPassValueEl = $("bonusOpeningPassValue");
 const bonusPaseCorridoEl = $("bonusPaseCorrido");
 const bonusCapicuaEl = $("bonusCapicua");
 const bonusChuchazoEl = $("bonusChuchazo");
@@ -418,8 +433,17 @@ function removePip(idx) {
 }
 
 // -------------------- Count-up animation --------------------
+const prefersReducedMotion =
+  typeof window !== "undefined" &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
 function countUp(el, fromVal, toVal, durationMs, onComplete) {
   if (!el || fromVal === toVal) {
+    if (onComplete) onComplete();
+    return;
+  }
+  if (prefersReducedMotion) {
+    el.textContent = String(toVal);
     if (onComplete) onComplete();
     return;
   }
@@ -456,24 +480,28 @@ function render() {
 
   if (matchScoreAValueEl) {
     if (game.teams.A.score !== prevA) {
+      if (!prefersReducedMotion) {
+        matchScoreAValueEl.classList.add("match-score-value--highlight");
+        if (matchScoreTeamAEl) matchScoreTeamAEl.classList.add("match-score-block--highlight");
+      }
       countUp(matchScoreAValueEl, prevA, game.teams.A.score, 380, () => {
         matchScoreAValueEl.classList.remove("match-score-value--highlight");
-        if (matchScoreTeamAEl) matchScoreTeamAEl.classList.remove("match-score-team--highlight");
+        if (matchScoreTeamAEl) matchScoreTeamAEl.classList.remove("match-score-block--highlight");
       });
-      matchScoreAValueEl.classList.add("match-score-value--highlight");
-      if (matchScoreTeamAEl) matchScoreTeamAEl.classList.add("match-score-team--highlight");
     } else {
       matchScoreAValueEl.textContent = String(game.teams.A.score);
     }
   }
   if (matchScoreBValueEl) {
     if (game.teams.B.score !== prevB) {
+      if (!prefersReducedMotion) {
+        matchScoreBValueEl.classList.add("match-score-value--highlight");
+        if (matchScoreTeamBEl) matchScoreTeamBEl.classList.add("match-score-block--highlight");
+      }
       countUp(matchScoreBValueEl, prevB, game.teams.B.score, 380, () => {
         matchScoreBValueEl.classList.remove("match-score-value--highlight");
-        if (matchScoreTeamBEl) matchScoreTeamBEl.classList.remove("match-score-team--highlight");
+        if (matchScoreTeamBEl) matchScoreTeamBEl.classList.remove("match-score-block--highlight");
       });
-      matchScoreBValueEl.classList.add("match-score-value--highlight");
-      if (matchScoreTeamBEl) matchScoreTeamBEl.classList.add("match-score-team--highlight");
     } else {
       matchScoreBValueEl.textContent = String(game.teams.B.score);
     }
@@ -539,6 +567,9 @@ function render() {
     btnWinnerB.classList.toggle("active", winner === "B");
     btnWinnerB.setAttribute("aria-selected", winner === "B" ? "true" : "false");
   }
+
+  if (btnClearBuckets) btnClearBuckets.disabled = leftovers.length === 0;
+  if (bonusOpeningPassValueEl) bonusOpeningPassValueEl.textContent = `+${openingPassPoints()}`;
 
   if (gameOverOverlay) {
     const hasWinner = !!gameWinner;
@@ -674,6 +705,7 @@ function buildPipPicker() {
     btn.dataset.value = String(v);
     btn.innerHTML = renderDots(v, `pip-${v}`);
     btn.addEventListener("click", () => {
+      if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(10);
       addPip(v);
       render();
     });
@@ -710,10 +742,11 @@ function wireUI() {
 
   if (btnClearBuckets)
     btnClearBuckets.addEventListener("click", () => {
-      if (leftovers.length && confirm(t("clearHandConfirm"))) {
-        clearLeftovers();
-        render();
-      }
+      if (!leftovers.length) return;
+      const total = pipSum(leftovers);
+      if (!confirm(t("clearHandConfirmWithTotal", { total }))) return;
+      clearLeftovers();
+      render();
     });
 
   if (btnApplyScore) btnApplyScore.addEventListener("click", applyScore);
