@@ -319,6 +319,32 @@
       </div>
     </main>
 
+    <!-- What's new toast (bottom-right, auto-dismiss) -->
+    <div id="whatsNewToast" class="whats-new-toast hidden" role="alert" aria-live="polite">
+      <div class="whats-new-toast__card">
+        <div class="whats-new-toast__head">
+          <span class="whats-new-toast__title" data-i18n="whatsNewTitle">What's new</span>
+          <button type="button" id="btnWhatsNewDismiss" class="whats-new-toast__close" aria-label="Close">×</button>
+        </div>
+        <p id="whatsNewToastBody" class="whats-new-toast__body"></p>
+        <div class="whats-new-toast__actions">
+          <button type="button" id="btnWhatsNewSeeMore" class="whats-new-toast__see-more" data-i18n="whatsNewSeeMore">See more</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- What's new modal (full release notes) -->
+    <div id="whatsNewModal" class="whats-new-modal hidden">
+      <div class="whats-new-modal__backdrop"></div>
+      <div class="whats-new-modal__panel">
+        <div class="whats-new-modal__header">
+          <h2 class="whats-new-modal__title" data-i18n="whatsNewTitle">What's new</h2>
+          <button type="button" id="btnWhatsNewModalClose" class="close-btn" data-i18n-aria="ariaClose" aria-label="Close">×</button>
+        </div>
+        <div id="whatsNewModalBody" class="whats-new-modal__body"></div>
+      </div>
+    </div>
+
     <script src="app.js"></script>
     <script>
       if ("serviceWorker" in navigator) {

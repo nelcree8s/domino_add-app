@@ -7,6 +7,25 @@
  * - Open "Score hand" (list icon), choose Win / Tranque / Bonus, apply score
  */
 
+// Bump this when you ship; update WHATS_NEW below with the message for this version.
+const APP_VERSION = "1.1.0";
+
+// Short text for toast; long text for "See more" modal when user's lastSeenVersion < APP_VERSION.
+const WHATS_NEW = {
+  "1.1.0": {
+    short: {
+      en: "New in this version: bonus chips, snappier pips, and more.",
+      es: "Novedades: premios en chips, botones más ágiles y más.",
+    },
+    long: {
+      en: "• Bonuses are now compact chips (Primera mano, Corrido, Capicúa, Chuchazo) in a 2×2 grid.\n• Pip buttons feel more responsive with a quick press animation and optional haptic feedback on supported devices.\n• The action row (Clear hand / Apply score) stays fixed at the bottom.\n• What's new appears as a toast; tap \"See more\" for full notes.",
+      es: "• Los premios ahora son chips compactos (Primera mano, Corrido, Capicúa, Chuchazo) en una cuadrícula 2×2.\n• Los botones de puntos responden mejor con animación al pulsar y vibración opcional en dispositivos compatibles.\n• La barra de acciones (Borrar mano / Aplicar puntos) queda fija abajo.\n• Las novedades aparecen en un toast; toca \"Ver más\" para las notas completas.",
+    },
+  },
+};
+
+const LAST_SEEN_VERSION_KEY = "dominoScore_lastSeenVersion";
+
 // -------------------- i18n --------------------
 const STRINGS = {
   en: {
@@ -93,6 +112,9 @@ const STRINGS = {
     matchScore: "Match score",
     moveToTeam: "Move to {name}",
     awardPointsTo: "Award points to",
+    whatsNewTitle: "What's new",
+    whatsNewDismiss: "Got it",
+    whatsNewSeeMore: "See more",
   },
   es: {
     title: "Domino Puntos",
@@ -178,6 +200,9 @@ const STRINGS = {
     matchScore: "Puntaje",
     moveToTeam: "Pasar a {name}",
     awardPointsTo: "Dar puntos a",
+    whatsNewTitle: "Novedades",
+    whatsNewDismiss: "Entendido",
+    whatsNewSeeMore: "Ver más",
   },
 };
 
@@ -251,6 +276,13 @@ const bonusCapicuaEl = $("bonusCapicua");
 const bonusChuchazoEl = $("bonusChuchazo");
 const btnClearBuckets = $("btnClearBuckets");
 const btnApplyScore = $("btnApplyScore");
+const whatsNewToast = $("whatsNewToast");
+const whatsNewToastBody = $("whatsNewToastBody");
+const btnWhatsNewDismiss = $("btnWhatsNewDismiss");
+const btnWhatsNewSeeMore = $("btnWhatsNewSeeMore");
+const whatsNewModal = $("whatsNewModal");
+const whatsNewModalBody = $("whatsNewModalBody");
+const btnWhatsNewModalClose = $("btnWhatsNewModalClose");
 const historyListEl = $("historyList");
 const btnNewGame = $("btnNewGame");
 const gameOverOverlay = $("gameOverOverlay");
@@ -727,6 +759,16 @@ function wireUI() {
       render();
     });
 
+  if (btnWhatsNewDismiss)
+    btnWhatsNewDismiss.addEventListener("click", dismissWhatsNew);
+  if (btnWhatsNewSeeMore)
+    btnWhatsNewSeeMore.addEventListener("click", openWhatsNewModal);
+  if (btnWhatsNewModalClose)
+    btnWhatsNewModalClose.addEventListener("click", closeWhatsNewModal);
+  const whatsNewBackdrop = document.querySelector(".whats-new-modal__backdrop");
+  if (whatsNewBackdrop)
+    whatsNewBackdrop.addEventListener("click", closeWhatsNewModal);
+
   const toggleHistory = (show) => {
     if (!listView) return;
     listView.classList.toggle("hidden", !show);
@@ -868,11 +910,70 @@ function wireUI() {
   });
 }
 
+// -------------------- What's new (toast + modal) --------------------
+let whatsNewToastTimer = null;
+
+function showWhatsNewIfNeeded() {
+  const lastSeen = typeof localStorage !== "undefined" ? localStorage.getItem(LAST_SEEN_VERSION_KEY) : null;
+  if (!whatsNewToast || !whatsNewToastBody) return;
+  const data = WHATS_NEW[APP_VERSION];
+  if (!data || !data.short) return;
+  const isNewer = !lastSeen || lastSeen !== APP_VERSION;
+  if (!isNewer) return;
+  const text = data.short[locale] || data.short.en || "";
+  whatsNewToastBody.textContent = text;
+  whatsNewToast.classList.remove("hidden");
+  if (whatsNewToastTimer) clearTimeout(whatsNewToastTimer);
+  whatsNewToastTimer = setTimeout(() => {
+    dismissWhatsNewToast();
+  }, 6000);
+}
+
+function hideWhatsNewToast() {
+  if (whatsNewToastTimer) {
+    clearTimeout(whatsNewToastTimer);
+    whatsNewToastTimer = null;
+  }
+  if (whatsNewToast) whatsNewToast.classList.add("hidden");
+}
+
+function markWhatsNewAsSeen() {
+  if (typeof localStorage !== "undefined") localStorage.setItem(LAST_SEEN_VERSION_KEY, APP_VERSION);
+}
+
+function dismissWhatsNewToast() {
+  hideWhatsNewToast();
+  markWhatsNewAsSeen();
+}
+
+function openWhatsNewModal() {
+  const data = WHATS_NEW[APP_VERSION];
+  if (!data || !data.long || !whatsNewModalBody) return;
+  const raw = data.long[locale] || data.long.en || "";
+  whatsNewModalBody.innerHTML = raw.split("\n").map((line) => {
+    const t = line.trim();
+    if (!t) return "";
+    return t.startsWith("•") ? `<p class="whats-new-modal__item">${t.slice(1).trim()}</p>` : `<p>${t}</p>`;
+  }).join("");
+  if (whatsNewModal) whatsNewModal.classList.remove("hidden");
+  hideWhatsNewToast();
+}
+
+function closeWhatsNewModal() {
+  markWhatsNewAsSeen();
+  if (whatsNewModal) whatsNewModal.classList.add("hidden");
+}
+
+function dismissWhatsNew() {
+  dismissWhatsNewToast();
+}
+
 // -------------------- Init --------------------
 function init() {
   applyLocale();
   wireUI();
   render();
+  showWhatsNewIfNeeded();
   if (typeof feather !== "undefined") feather.replace();
 }
 if (document.readyState === "loading") {
